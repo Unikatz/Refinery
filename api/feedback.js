@@ -19,10 +19,72 @@ const clip = (v, n) => String(v ?? "").replace(/\r/g, "").trim().slice(0, n);
 // Stop @mentions and #refs in tester text from pinging people or linking issues.
 const tame = (s) => s.replace(/@/g, "@\u200b").replace(/#(\d)/g, "#\u200b$1");
 
+// Accept the documented name plus common alternatives, and ignore stray spaces or quotes.
+const readToken = () => {
+  for (const k of ["FEEDBACK_GITHUB_TOKEN", "GITHUB_TOKEN", "FEEDBACK_TOKEN", "GH_TOKEN"]) {
+    const v = String(process.env[k] || "").trim().replace(/^["']|["']$/g, "");
+    if (v) return { token: v, name: k };
+  }
+  return { token: "", name: null };
+};
+const readRepo = () => String(process.env.FEEDBACK_REPO || "Unikatz/refinery-feedback").trim()
+  .replace(/^https?:\/\/github\.com\//i, "").replace(/\.git$/i, "").replace(/\/+$/, "");
+const gh = (path, token, init = {}) => fetch(`https://api.github.com${path}`, {
+  ...init,
+  headers: {
+    Authorization: `Bearer ${token}`,
+    Accept: "application/vnd.github+json",
+    "X-GitHub-Api-Version": "2022-11-28",
+    "User-Agent": "refinery-feedback",
+    "Content-Type": "application/json",
+    ...(init.headers || {}),
+  },
+});
+
+// GET /api/feedback: setup check for the product owner. Reveals no secrets.
+async function status(res) {
+  const { token, name } = readToken();
+  const repo = readRepo();
+  const out = {
+    tokenFound: !!token,
+    tokenSetting: name,
+    repo,
+    vercelEnvironment: process.env.VERCEL_ENV || "unknown",
+    deployedCommit: (process.env.VERCEL_GIT_COMMIT_SHA || "").slice(0, 7) || "unknown",
+  };
+  if (!token) {
+    out.ready = false;
+    out.fix = `No token in this deployment's ${out.vercelEnvironment} environment. In Vercel → Settings → Environment Variables, add FEEDBACK_GITHUB_TOKEN with the Production box ticked, then Redeploy (new variables only apply to new deployments).`;
+    return res.status(200).json(out);
+  }
+  try {
+    const r = await gh(`/repos/${repo}`, token);
+    out.repoReachable = r.ok;
+    if (r.ok) {
+      const j = await r.json();
+      out.repoPrivate = !!j.private;
+      out.canWriteIssues = !!(j.permissions && (j.permissions.push || j.permissions.triage || j.permissions.maintain || j.permissions.admin)) || null;
+      out.ready = true;
+      out.fix = null;
+    } else {
+      out.ready = false;
+      out.githubStatus = r.status;
+      out.fix = r.status === 401
+        ? "GitHub rejected the token. It may be mistyped, expired or revoked. Create a new one and replace the Vercel value, then Redeploy."
+        : `GitHub can't find ${repo} with this token. Check the repo exists with exactly this name, and that the token's Repository access includes it.`;
+    }
+  } catch (e) {
+    out.ready = false;
+    out.fix = "Couldn't reach GitHub from Vercel. Try again in a minute.";
+  }
+  return res.status(200).json(out);
+}
+
 module.exports = async (req, res) => {
   res.setHeader("Cache-Control", "no-store");
+  if (req.method === "GET") return status(res);
   if (req.method !== "POST") {
-    res.setHeader("Allow", "POST");
+    res.setHeader("Allow", "GET, POST");
     return res.status(405).json({ error: "Send feedback with POST." });
   }
 
@@ -56,9 +118,12 @@ module.exports = async (req, res) => {
   if (!KINDS[kind]) return res.status(400).json({ error: "Choose what kind of feedback this is." });
   if (!title) return res.status(400).json({ error: "Add a one-line summary." });
 
-  const token = process.env.FEEDBACK_GITHUB_TOKEN;
-  const repo = process.env.FEEDBACK_REPO || "Unikatz/refinery-feedback";
-  if (!token) return res.status(503).json({ error: "Feedback isn't switched on yet. Please try again later." });
+  const { token } = readToken();
+  const repo = readRepo();
+  if (!token) {
+    console.error("Feedback token missing: set FEEDBACK_GITHUB_TOKEN for this environment and redeploy. Open /api/feedback for a setup check.");
+    return res.status(503).json({ error: "Feedback isn't switched on yet. Please try again later." });
+  }
 
   recent.push(now);
   hits.set(ip, recent);
@@ -76,15 +141,8 @@ module.exports = async (req, res) => {
     details ? tame(details) : "_No details given._",
   ].filter((x) => x !== null).join("\n");
 
-  const post = (labels) => fetch(`https://api.github.com/repos/${repo}/issues`, {
+  const post = (labels) => gh(`/repos/${repo}/issues`, token, {
     method: "POST",
-    headers: {
-      Authorization: `Bearer ${token}`,
-      Accept: "application/vnd.github+json",
-      "X-GitHub-Api-Version": "2022-11-28",
-      "User-Agent": "refinery-feedback",
-      "Content-Type": "application/json",
-    },
     body: JSON.stringify({
       title: `[${PRODUCTS[product]}] ${KINDS[kind]}: ${tame(title)}`,
       body,

@@ -45,6 +45,8 @@ Vercel environment variables:
 
 Until the token is set, the form shows "Feedback isn't switched on yet".
 
+**Setup check:** open `/api/feedback` on the Vercel site in a browser. It reports whether this deployment has the token, which environment it is, and whether GitHub accepts the token for the feedback repo, with the fix if not. It never shows the token itself. New or changed environment variables only apply after a redeploy.
+
 ## Agents
 
 See [AGENTS.md](AGENTS.md) for the data model and the rules agents follow. In short: agents work only on items marked "Requested of agent", record themselves as the author, and set the item to "Awaiting approval". Only a product owner approves, triages tester feedback, or changes priorities and goals.
