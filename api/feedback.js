@@ -12,7 +12,7 @@ const PRODUCTS = {
   "aura-battle": "Aura Battle",
 };
 const KINDS = { bug: "Bug", confusing: "Confusing", idea: "Idea", praise: "Praise" };
-const LIMIT_PER_HOUR = 10;
+const LIMIT_PER_HOUR = 20; // saved submissions per connection per hour
 const hits = new Map(); // best-effort, per running instance
 
 const clip = (v, n) => String(v ?? "").replace(/\r/g, "").trim().slice(0, n);
@@ -98,7 +98,8 @@ module.exports = async (req, res) => {
     return res.status(200).json({ ok: true });
   }
 
-  const ip = String(req.headers["x-forwarded-for"] || "").split(",")[0].trim() || "unknown";
+  const ip = String(req.headers["x-vercel-forwarded-for"] || req.headers["x-real-ip"] || req.headers["x-forwarded-for"] || "")
+    .split(",")[0].trim() || "unknown";
   const now = Date.now();
   const recent = (hits.get(ip) || []).filter((t) => now - t < 3600000);
   if (recent.length >= LIMIT_PER_HOUR) {
@@ -124,9 +125,6 @@ module.exports = async (req, res) => {
     console.error("Feedback token missing: set FEEDBACK_GITHUB_TOKEN for this environment and redeploy. Open /api/feedback for a setup check.");
     return res.status(503).json({ error: "Feedback isn't switched on yet. Please try again later." });
   }
-
-  recent.push(now);
-  hits.set(ip, recent);
 
   const data = { product, kind, title, details, device, rating, name, at: new Date().toISOString() };
   const meta = JSON.stringify(data).replace(/</g, "\\u003c").replace(/>/g, "\\u003e");
@@ -157,6 +155,8 @@ module.exports = async (req, res) => {
       console.error("GitHub issue create failed", r.status, await r.text().catch(() => ""));
       return res.status(502).json({ error: "Your feedback couldn't be saved. Please try again in a minute." });
     }
+    recent.push(now); // only saved feedback counts toward the limit
+    hits.set(ip, recent);
     return res.status(200).json({ ok: true });
   } catch (e) {
     console.error("GitHub request error", e);
