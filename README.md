@@ -28,6 +28,23 @@ Each product has its own space, so backlogs and sprints never mix. Current produ
 
 Because data and sign-in come from claude.ai, the page only works when opened as the published artifact. Opening `index.html` directly or hosting it elsewhere shows the empty "can't be reached" state. This repo is the source and change history; changes go live when the page is republished to the same artifact.
 
+## Public tester feedback (no sign-in)
+
+Testers can send feedback from `/feedback` on the Vercel site without any account. Link straight to a product with `/feedback?product=aura-isles` (or `red-flag-run`, `aura-battle`).
+
+1. `feedback.html` posts to `api/feedback.js`, a Vercel function.
+2. The function checks the submission (required fields, a hidden spam trap, a minimum fill time, and 10 submissions per hour per connection) and files it as an issue in the private repo `Unikatz/refinery-feedback`.
+3. A scheduled agent imports new issues every few hours into Refinery's Tester feedback tab as "New", labels the issue `imported` and closes it. Product owners triage from there.
+
+Vercel environment variables:
+
+| Name | Value |
+|---|---|
+| `FEEDBACK_GITHUB_TOKEN` | Fine-grained GitHub token, repository access: only `Unikatz/refinery-feedback`, permission: Issues read and write |
+| `FEEDBACK_REPO` | Optional. Defaults to `Unikatz/refinery-feedback` |
+
+Until the token is set, the form shows "Feedback isn't switched on yet".
+
 ## Agents
 
 See [AGENTS.md](AGENTS.md) for the data model and the rules agents follow. In short: agents work only on items marked "Requested of agent", record themselves as the author, and set the item to "Awaiting approval". Only a product owner approves, triages tester feedback, or changes priorities and goals.

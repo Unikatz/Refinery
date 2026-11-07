@@ -12,7 +12,7 @@ items/{id}     productId, num, title, description, type (story|bug|task|spike|en
                approval (none|pending|approved|changes), feedbackId,
                createdAt, createdBy, updatedAt (ISO), updatedBy
 feedback/{id}  productId, kind (bug|confusing|idea|praise), title, details, device,
-               rating (1-5|null), source (room|email), status (new|accepted|declined),
+               rating (1-5|null), source (room|email|web), ref, status (new|accepted|declined),
                at (ISO), submittedBy ({"type":"tester","name"} or a person), itemId, triageNote
 sprints/{id}   productId, name, goal, start, end, capacity, state (planned|active|closed),
                reviewNotes, retroNotes
@@ -31,4 +31,5 @@ Rules for agents:
    source "email"; never turn feedback into backlog items yourself, a product owner triages it.
 5. Add one activity row per change: {"productId","at","actor":{"type":"agent","name"},"text"}.
 6. If approval = "changes", read agentNote/feedback, revise, then set approval back to "pending".
-7. Nothing leaves this room (posts, emails) without a product owner's approval.```
+7. Nothing leaves this room (posts, emails) without a product owner's approval.
+```

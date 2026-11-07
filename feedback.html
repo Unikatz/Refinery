@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Send Feedback · Refinery</title>
+<meta name="description" content="Tell the team what you found while testing. No sign-in needed.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one narrow column — who it's for, what kind, what happened, send. */
+:root{
+  --bg:#eef1f4; --surface:#ffffff; --sunk:#e3e8ee; --line:#cfd6df; --ink:#16202c; --muted:#5a6676;
+  --accent:#2448c9; --accent-ink:#ffffff; --accent-soft:#dfe6fb;
+  --ok:#1d7a4a; --ok-soft:#dcf1e5; --bad:#b42318; --bad-soft:#fde4e1; --star:#b7791f;
+  --f-display:"Bricolage Grotesque",ui-sans-serif,system-ui,sans-serif;
+  --f-body:"IBM Plex Sans",ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root{
+  --bg:#10151c; --surface:#18202a; --sunk:#0c1117; --line:#2b3644; --ink:#e6ebf1; --muted:#97a3b3;
+  --accent:#7d9bff; --accent-ink:#0b1020; --accent-soft:#1f2b4f;
+  --ok:#5fd394; --ok-soft:#123222; --bad:#ff8a7d; --bad-soft:#3d1714; --star:#f0b84d;
+  color-scheme:dark}}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font:15px/1.55 var(--f-body);padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+.wrap{max-width:620px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:32px 56px}
+.eyebrow{font-size:.72rem;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);font-weight:600}
+h1{font-family:var(--f-display);font-size:2rem;line-height:1.1;margin:4px 0 8px;text-wrap:balance;letter-spacing:-.01em}
+.lede{color:var(--muted);margin:0 0 24px;max-width:52ch}
+form{display:grid;gap:18px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:20px}
+fieldset{border:0;margin:0;padding:0;display:grid;gap:8px;min-width:0}
+legend,label>span{font-size:.82rem;font-weight:600;color:var(--muted);padding:0;margin-bottom:6px}
+label{display:grid;gap:0}
+.opt{font-weight:400}
+input,select,textarea,button{font:inherit;color:inherit}
+input[type=text],select,textarea{width:100%;min-width:0;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:10px 12px}
+textarea{min-height:120px;resize:vertical}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chips label{display:block}
+.chips input{position:absolute;opacity:0;pointer-events:none}
+.chips span{display:inline-block;border:1px solid var(--line);border-radius:999px;padding:7px 14px;font-weight:600;cursor:pointer;color:var(--ink);font-size:.9rem;margin:0}
+.chips input:checked+span{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.chips input:focus-visible+span{outline:2px solid var(--accent);outline-offset:2px}
+.stars{display:flex;gap:2px}
+.stars button{background:none;border:0;padding:2px 4px;font-size:1.6rem;line-height:1;color:var(--line);cursor:pointer}
+.stars button.on{color:var(--star)}
+.row{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px}
+.hp{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
+.send{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+button.primary{background:var(--accent);color:var(--accent-ink);border:1px solid var(--accent);border-radius:8px;padding:11px 20px;font-weight:600;cursor:pointer}
+button.primary:disabled{opacity:.6;cursor:progress}
+button.plain{background:none;border:1px solid var(--line);border-radius:8px;padding:10px 16px;font-weight:600;cursor:pointer}
+.err{background:var(--bad-soft);color:var(--bad);border-radius:8px;padding:10px 12px;font-weight:500}
+.done{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:24px;display:grid;gap:12px}
+.done h2{font-family:var(--f-display);margin:0;font-size:1.4rem}
+.tick{width:40px;height:40px;border-radius:50%;background:var(--ok-soft);color:var(--ok);display:grid;place-items:center;font-size:1.3rem;font-weight:700}
+.fine{color:var(--muted);font-size:.82rem;margin:16px 0 0}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="eyebrow">Tester feedback</div>
+  <h1 id="heading">Tell us what you found</h1>
+  <p class="lede">Bugs, confusing moments, ideas or things you liked. No account or sign-in needed. The product team reads every message.</p>
+
+  <form id="fb" novalidate>
+    <label for="product"><span>Which app?</span>
+      <select id="product" required>
+        <option value="aura-isles">Aura Isles</option>
+        <option value="red-flag-run">Red Flag Run</option>
+        <option value="aura-battle">Aura Battle</option>
+      </select>
+    </label>
+
+    <fieldset>
+      <legend>What kind of feedback?</legend>
+      <div class="chips">
+        <label><input type="radio" name="kind" id="k-bug" value="bug" checked><span>Something broke</span></label>
+        <label><input type="radio" name="kind" id="k-confusing" value="confusing"><span>Confusing</span></label>
+        <label><input type="radio" name="kind" id="k-idea" value="idea"><span>Idea</span></label>
+        <label><input type="radio" name="kind" id="k-praise" value="praise"><span>I liked this</span></label>
+      </div>
+    </fieldset>
+
+    <label for="title"><span>In one line, what happened?</span>
+      <input type="text" id="title" maxlength="160" required placeholder="e.g. My island reset after I closed the app">
+    </label>
+
+    <label for="details"><span>Details <span class="opt">(optional)</span></span>
+      <textarea id="details" maxlength="4000" placeholder="What were you doing, what did you expect, and what happened instead?"></textarea>
+    </label>
+
+    <fieldset>
+      <legend>How was it overall? <span class="opt">(optional)</span></legend>
+      <div class="stars" id="stars" role="radiogroup" aria-label="Rating out of 5"></div>
+    </fieldset>
+
+    <div class="row">
+      <label for="device"><span>Phone or computer <span class="opt">(optional)</span></span>
+        <input type="text" id="device" maxlength="120" placeholder="e.g. Samsung A54, Chrome">
+      </label>
+      <label for="name"><span>Your first name <span class="opt">(optional)</span></span>
+        <input type="text" id="name" maxlength="60" autocomplete="given-name" placeholder="Leave blank to stay anonymous">
+      </label>
+    </div>
+
+    <div class="hp" aria-hidden="true"><label for="website">Website<input type="text" id="website" tabindex="-1" autocomplete="off"></label></div>
+
+    <div id="error" class="err" role="alert" hidden></div>
+    <div class="send"><button class="primary" type="submit" id="sendBtn">Send feedback</button></div>
+  </form>
+
+  <div class="done" id="done" hidden>
+    <div class="tick" aria-hidden="true">✓</div>
+    <h2>Thanks, we've got it</h2>
+    <p style="margin:0">Your feedback is with the product team. They review it before planning the next round of changes.</p>
+    <div><button class="plain" id="again" type="button">Send more feedback</button></div>
+  </div>
+
+  <p class="fine">Please don't include passwords or personal details such as your address or phone number.</p>
+</div>
+
+<script>
+(function(){
+  var NAMES={"aura-isles":"Aura Isles","red-flag-run":"Red Flag Run","aura-battle":"Aura Battle"};
+  var form=document.getElementById("fb"), sel=document.getElementById("product");
+  var startedAt=Date.now(), rating=0;
+
+  var params=new URLSearchParams(location.search);
+  var pre=params.get("product")||location.hash.slice(1);
+  if(NAMES[pre]){sel.value=pre}
+  function heading(){document.getElementById("heading").textContent="Tell us what you found in "+NAMES[sel.value]}
+  heading(); sel.addEventListener("change",heading);
+
+  var stars=document.getElementById("stars");
+  for(var i=1;i<=5;i++){(function(n){
+    var b=document.createElement("button");b.type="button";b.textContent="★";
+    b.setAttribute("role","radio");b.setAttribute("aria-label",n+" out of 5");b.setAttribute("aria-checked","false");
+    b.addEventListener("click",function(){rating=(rating===n)?0:n;paint()});
+    stars.appendChild(b)})(i)}
+  function paint(){[].forEach.call(stars.children,function(b,ix){b.classList.toggle("on",ix<rating);b.setAttribute("aria-checked",String(ix+1===rating))})}
+
+  function showError(t){var e=document.getElementById("error");e.textContent=t;e.hidden=!t}
+
+  form.addEventListener("submit",function(ev){
+    ev.preventDefault();showError("");
+    var title=document.getElementById("title");
+    if(!title.value.trim()){showError("Add a one-line summary so the team knows what happened.");title.focus();return}
+    var btn=document.getElementById("sendBtn");btn.disabled=true;btn.textContent="Sending…";
+    var payload={
+      product:sel.value,
+      kind:(form.querySelector("input[name=kind]:checked")||{}).value,
+      title:title.value, details:document.getElementById("details").value,
+      device:document.getElementById("device").value, name:document.getElementById("name").value,
+      rating:rating||null, website:document.getElementById("website").value, startedAt:startedAt
+    };
+    fetch("/api/feedback",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)})
+      .then(function(r){return r.json().catch(function(){return {}}).then(function(j){return {ok:r.ok,j:j}})})
+      .then(function(x){
+        if(x.ok){form.hidden=true;document.getElementById("done").hidden=false;window.scrollTo(0,0)}
+        else showError(x.j.error||"Your feedback couldn't be sent. Please try again.");
+      })
+      .catch(function(){showError("Couldn't reach the server. Check your connection and try again.")})
+      .then(function(){btn.disabled=false;btn.textContent="Send feedback"});
+  });
+
+  document.getElementById("again").addEventListener("click",function(){
+    ["title","details"].forEach(function(id){document.getElementById(id).value=""});
+    rating=0;paint();startedAt=Date.now();
+    document.getElementById("done").hidden=true;form.hidden=false;document.getElementById("title").focus();
+  });
+})();
+</script>
+</body>
+</html>

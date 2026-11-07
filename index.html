@@ -249,6 +249,8 @@ function render(){
       <h2>The backlog lives in the Refinery room</h2>
       <p style="margin:0">This is the public copy of Refinery. Products, backlogs and sprints are kept in the live room on claude.ai, where product owners and agents edit them together.</p>
       <div class="bar" style="margin:0"><a class="btnlink primary" href="${LIVE_ROOM}#aura-isles" target="_blank" rel="noopener">Open Aura Isles in Refinery</a><a class="btnlink" href="${LIVE_ROOM}" target="_blank" rel="noopener">Open the full room</a></div>
+      <p style="margin:8px 0 0"><b>Testing Aura Isles?</b> You don't need an account to tell us what you found.</p>
+      <div class="bar" style="margin:0"><a class="btnlink" href="/feedback?product=aura-isles">Give feedback on Aura Isles</a></div>
       <p class="muted" style="margin:0;font-size:.85rem">You need to be signed in to claude.ai, and the room must be shared with you.</p></div>`;
     return}
   if(!S.ready.products){v.innerHTML=`<div class="empty">Loading products…</div>`;return}
@@ -468,7 +470,7 @@ items/{id}     productId, num, title, description, type (story|bug|task|spike|en
                approval (none|pending|approved|changes), feedbackId,
                createdAt, createdBy, updatedAt (ISO), updatedBy
 feedback/{id}  productId, kind (bug|confusing|idea|praise), title, details, device,
-               rating (1-5|null), source (room|email), status (new|accepted|declined),
+               rating (1-5|null), source (room|email|web), ref, status (new|accepted|declined),
                at (ISO), submittedBy ({"type":"tester","name"} or a person), itemId, triageNote
 sprints/{id}   productId, name, goal, start, end, capacity, state (planned|active|closed),
                reviewNotes, retroNotes
@@ -554,7 +556,7 @@ function vFeedback(v){
         <div class="bar" style="margin:0"><span class="pill ${f.kind==="bug"?"changes":f.kind==="praise"?"done":f.kind==="idea"?"ready":"doing"}">${esc(FB_LABEL[f.kind]||f.kind)}</span>
           <b style="overflow-wrap:anywhere">${esc(f.title)}</b><span class="grow"></span>${f.rating?`<span class="mono" aria-label="${f.rating} of 5">${"★".repeat(f.rating)}${"☆".repeat(5-f.rating)}</span>`:""}</div>
         ${f.details?`<div style="white-space:pre-wrap;overflow-wrap:anywhere">${esc(f.details)}</div>`:""}
-        <div class="meta" style="display:flex;flex-wrap:wrap;gap:8px;font-size:.8rem;color:var(--muted)"><span>From ${whoHTML(f.submittedBy)}</span>${f.device?`<span>${esc(f.device)}</span>`:""}<span>${esc(fmt(f.at))}</span>${f.source==="email"?`<span class="pill">via email</span>`:""}</div>
+        <div class="meta" style="display:flex;flex-wrap:wrap;gap:8px;font-size:.8rem;color:var(--muted)"><span>From ${whoHTML(f.submittedBy)}</span>${f.device?`<span>${esc(f.device)}</span>`:""}<span>${esc(fmt(f.at))}</span>${f.source==="email"?`<span class="pill">via email</span>`:f.source==="web"?`<span class="pill">via public form</span>`:""}${f.ref?`<span class="mono">${esc(f.ref)}</span>`:""}</div>
         ${st==="new"?`<label for="fbn-${esc(f.id)}"><span>Note for the tester or team (optional)</span><input id="fbn-${esc(f.id)}" ${ro}></label>
           <div class="bar" style="margin:0"><button class="primary" data-act="fb-accept" data-id="${esc(f.id)}" ${ro}>Add to backlog</button><button data-act="fb-decline" data-id="${esc(f.id)}" ${ro}>Decline</button></div>`
         :`<div class="bar" style="margin:0"><span class="pill ${st==="accepted"?"done":""}">${st==="accepted"?"Added to backlog":"Declined"}</span>
