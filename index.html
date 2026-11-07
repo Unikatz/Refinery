@@ -1,3 +1,4 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"></head><body>
 <title>Refinery</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -45,6 +46,8 @@ button.danger{color:var(--bad);border-color:var(--bad)}
 button.ghost{border-color:transparent;background:transparent;padding:4px 8px}
 button.ghost:hover{background:var(--sunk)}
 button:disabled{opacity:.45;cursor:not-allowed}
+a.btnlink{display:inline-block;text-decoration:none;color:var(--ink);border:1px solid var(--line);background:var(--surface);border-radius:6px;padding:7px 14px;font-weight:600}
+a.btnlink.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 input,select,textarea{background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:7px 9px;width:100%;min-width:0}
 textarea{min-height:84px;resize:vertical}
@@ -164,6 +167,7 @@ dialog .actions{display:flex;gap:8px;justify-content:space-between;flex-wrap:wra
 <div id="toast" class="toast" hidden></div>
 
 <script>
+const LIVE_ROOM="https://claude.ai/artifact/RFPTuv2uP38VASrrRJTdyv";
 const TABS=[["backlog","Backlog"],["planning","Sprint planning"],["board","Sprint board"],["review","Sprint review"],["goal","Goal & product review"],["feedback","Tester feedback"],["agents","Agent desk"],["activity","Activity"]];
 const STATUS=[["backlog","Backlog"],["ready","Ready"],["sprint","To do"],["doing","Doing"],["review","In review"],["done","Done"]];
 const STATUS_LABEL=Object.fromEntries(STATUS);
@@ -238,7 +242,15 @@ function render(){
   $("#tabs").innerHTML=TABS.map(([k,l])=>`<a href="#${k}" ${S.tab===k?'aria-current="page"':""}>${l}${badge[k]?`<span class="count">${badge[k]}</span>`:""}</a>`).join("");
   $("#banner").innerHTML=!S.canWrite?`<div class="banner">You can view this room but not change it.</div>`:"";
   const v=$("#view");
-  if(!S.db){v.innerHTML=`<div class="empty">The shared backlog can't be reached in this view. Open the page on claude.ai while signed in.</div>`;return}
+  if(!S.db){
+    $("#pname").textContent="Refinery";$("#goalline").textContent="";$("#tabs").innerHTML="";
+    $("#productSel").hidden=true;$("#newProductBtn").hidden=true;
+    v.innerHTML=`<div class="panel stack" style="max-width:62ch">
+      <h2>The backlog lives in the Refinery room</h2>
+      <p style="margin:0">This is the public copy of Refinery. Products, backlogs and sprints are kept in the live room on claude.ai, where product owners and agents edit them together.</p>
+      <div class="bar" style="margin:0"><a class="btnlink primary" href="${LIVE_ROOM}#aura-isles" target="_blank" rel="noopener">Open Aura Isles in Refinery</a><a class="btnlink" href="${LIVE_ROOM}" target="_blank" rel="noopener">Open the full room</a></div>
+      <p class="muted" style="margin:0;font-size:.85rem">You need to be signed in to claude.ai, and the room must be shared with you.</p></div>`;
+    return}
   if(!S.ready.products){v.innerHTML=`<div class="empty">Loading products…</div>`;return}
   if(!p){v.innerHTML=`<div class="empty"><h2>Start with a product</h2><p>Each product gets its own backlog, sprints and goal, so work never mixes between them.</p><button class="primary" data-act="new-product">Create the first product</button></div>`;return}
   ({backlog:vBacklog,planning:vPlanning,board:vBoard,review:vReview,goal:vGoal,feedback:vFeedback,agents:vAgents,activity:vActivity}[S.tab]||vBacklog)(v);
@@ -617,19 +629,23 @@ $("#np-cancel").onclick=()=>$("#prodDlg").close();
 $("#prodForm").addEventListener("submit",e=>{e.preventDefault();const name=$("#np-name").value.trim();if(!name)return;$("#prodDlg").close();
   guard(async()=>{const ref=await S.db.collection("products").add({name,keyPrefix:($("#np-key").value.trim()||name.replace(/[^A-Za-z]/g,"").slice(0,3)||"PB").toUpperCase(),goal:$("#np-goal").value.trim(),vision:"",goalMetric:"",createdAt:now()});S.pid=ref.id;store("po-room-pid",ref.id);await log(`Created product ${name}`,ref.id);toast("Product created")})});
 
-function route(){const h=location.hash.slice(1);S.tab=TABS.some(t=>t[0]===h)?h:"backlog";S.confirm=null;render()}
+function route(){const h=location.hash.slice(1);
+  if(h&&!TABS.some(t=>t[0]===h)){S.wantPid=h;applyWantPid()}
+  S.tab=TABS.some(t=>t[0]===h)?h:"backlog";S.confirm=null;render()}
+function applyWantPid(){if(S.wantPid&&S.products.some(p=>p.id===S.wantPid)){S.pid=S.wantPid;S.sprintSel=null;store("po-room-pid",S.pid);S.wantPid=null}}
 window.addEventListener("hashchange",route);
 
 /* ---------- boot ---------- */
 (async()=>{
   route();
-  const [db,user]=await Promise.all([claude.use("db"),claude.use("user")]);
+  const host=window.claude;
+  const [db,user]=host&&typeof host.use==="function"?await Promise.all([host.use("db"),host.use("user")]).catch(()=>[null,null]):[null,null];
   S.db=db;S.user=user;
   if(user){S.myId=await user.id();const c=await user.can("data.write");if(c===false)S.canWrite=false}
   if(!db){render();return}
   const timer=setTimeout(()=>{if(!S.ready.products)$("#view").innerHTML=`<div class="empty">The shared backlog is taking a while to answer. It will appear here as soon as it connects.</div>`},10000);
   const sub=(name,q,after)=>q.onSnapshot(snap=>{S[name]=snap.docs.map(d=>({id:d.id,...d.data()}));if(!snap.metadata.fromCache)S.ready[name]=true;
-      if(name==="products"){S.ready.products=true;clearTimeout(timer);if(!S.products.find(p=>p.id===S.pid)){const r=recall("po-room-pid");S.pid=(S.products.find(p=>p.id===r)||S.products[0])?.id||null}}
+      if(name==="products"){S.ready.products=true;clearTimeout(timer);applyWantPid();if(!S.products.find(p=>p.id===S.pid)){const r=recall("po-room-pid");S.pid=(S.products.find(p=>p.id===r)||S.products[0])?.id||null}}
       scheduleRender()},
     err=>{toast("Lost connection to "+name+". Reload to reconnect.");});
   sub("products",db.collection("products"));
@@ -640,3 +656,5 @@ window.addEventListener("hashchange",route);
   sub("activity",db.collection("activity").orderBy("at","desc").limit(150));
 })();
 </script>
+
+</body></html>
