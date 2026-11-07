@@ -1,0 +1,642 @@
+<title>Refinery</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one working surface — product bar, ceremony tabs, a single view below. Index-card rows, mono for keys and points. */
+:root{
+  --bg:#eef1f4; --surface:#ffffff; --sunk:#e3e8ee; --line:#cfd6df; --ink:#16202c; --muted:#5a6676;
+  --accent:#2448c9; --accent-ink:#ffffff; --accent-soft:#dfe6fb;
+  --agent:#8a5a00; --agent-soft:#fbefd6;
+  --ok:#1d7a4a; --ok-soft:#dcf1e5; --warn:#a35a00; --warn-soft:#fdebd3; --bad:#b42318; --bad-soft:#fde4e1;
+  --f-display:"Bricolage Grotesque",ui-sans-serif,system-ui,sans-serif;
+  --f-body:"IBM Plex Sans",ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+  --r:8px;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#10151c; --surface:#18202a; --sunk:#0c1117; --line:#2b3644; --ink:#e6ebf1; --muted:#97a3b3;
+  --accent:#7d9bff; --accent-ink:#0b1020; --accent-soft:#1f2b4f;
+  --agent:#f0b84d; --agent-soft:#3a2c10;
+  --ok:#5fd394; --ok-soft:#123222; --warn:#f2a64a; --warn-soft:#3a2710; --bad:#ff8a7d; --bad-soft:#3d1714;
+  color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#10151c; --surface:#18202a; --sunk:#0c1117; --line:#2b3644; --ink:#e6ebf1; --muted:#97a3b3;
+  --accent:#7d9bff; --accent-ink:#0b1020; --accent-soft:#1f2b4f;
+  --agent:#f0b84d; --agent-soft:#3a2c10;
+  --ok:#5fd394; --ok-soft:#123222; --warn:#f2a64a; --warn-soft:#3a2710; --bad:#ff8a7d; --bad-soft:#3d1714;
+  color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:14px;line-height:1.5}
+.wrap{max-width:1180px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 48px}
+h1,h2,h3{font-family:var(--f-display);text-wrap:balance;margin:0;line-height:1.15}
+h1{font-size:1.6rem;font-weight:700;letter-spacing:-.01em}
+h2{font-size:1.2rem;font-weight:700}
+h3{font-size:.95rem;font-weight:700}
+.eyebrow{font-size:.7rem;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.mono{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.muted{color:var(--muted)}
+button,select,input,textarea{font:inherit;color:inherit}
+button{cursor:pointer;border:1px solid var(--line);background:var(--surface);border-radius:6px;padding:6px 12px;font-weight:500}
+button:hover{border-color:var(--muted)}
+button.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+button.primary:hover{filter:brightness(1.08)}
+button.danger{color:var(--bad);border-color:var(--bad)}
+button.ghost{border-color:transparent;background:transparent;padding:4px 8px}
+button.ghost:hover{background:var(--sunk)}
+button:disabled{opacity:.45;cursor:not-allowed}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+input,select,textarea{background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:7px 9px;width:100%;min-width:0}
+textarea{min-height:84px;resize:vertical}
+label{display:grid;gap:4px;font-size:.8rem;font-weight:600;color:var(--muted)}
+label > span{letter-spacing:.02em}
+
+header.top{display:flex;flex-wrap:wrap;gap:12px 20px;align-items:flex-end;justify-content:space-between;margin-bottom:14px}
+.product-pick{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.product-pick select{width:auto;min-width:180px;max-width:100%;font-weight:600}
+.goalline{margin-top:4px;color:var(--muted);max-width:70ch}
+.goalline b{color:var(--ink);font-weight:600}
+
+nav.tabs{display:flex;gap:2px;overflow-x:auto;border-bottom:1px solid var(--line);margin-bottom:18px;scrollbar-width:thin}
+nav.tabs a{flex:none;padding:9px 14px;text-decoration:none;color:var(--muted);font-weight:600;border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap}
+nav.tabs a[aria-current="page"]{color:var(--ink);border-bottom-color:var(--accent)}
+nav.tabs a .count{font-family:var(--f-mono);font-size:.72rem;background:var(--agent-soft);color:var(--agent);border-radius:9px;padding:0 6px;margin-left:6px}
+
+.bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:12px}
+.bar .grow{flex:1}
+.bar select{width:auto}
+
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px}
+.stack{display:grid;gap:12px}
+.row-form{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;align-items:end}
+
+/* backlog rows */
+.list{display:grid;gap:6px}
+.item{display:grid;grid-template-columns:auto 2.4rem minmax(0,1fr) auto;gap:10px;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:8px 10px}
+.item.dragging{opacity:.4}
+.item.drop-above{box-shadow:0 -3px 0 var(--accent)}
+.item .handle{cursor:grab;color:var(--muted);font-family:var(--f-mono);user-select:none;padding:0 2px}
+.item .rank{font-family:var(--f-mono);color:var(--muted);text-align:right}
+.item .main{min-width:0;cursor:pointer}
+.item .title{font-weight:600;overflow-wrap:anywhere}
+.item .meta{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:3px;font-size:.78rem;color:var(--muted)}
+.item .side{display:flex;gap:4px;align-items:center}
+.pts{font-family:var(--f-mono);font-size:.78rem;border:1px solid var(--line);border-radius:4px;padding:0 6px;color:var(--ink);white-space:nowrap}
+.pill{font-size:.72rem;font-weight:600;border-radius:999px;padding:1px 8px;white-space:nowrap;background:var(--sunk);color:var(--muted)}
+.pill.ready{background:var(--accent-soft);color:var(--accent)}
+.pill.doing{background:var(--warn-soft);color:var(--warn)}
+.pill.review{background:var(--warn-soft);color:var(--warn)}
+.pill.done{background:var(--ok-soft);color:var(--ok)}
+.pill.agent{background:var(--agent-soft);color:var(--agent)}
+.pill.pending{background:var(--agent-soft);color:var(--agent);border:1px dashed var(--agent)}
+.pill.changes{background:var(--bad-soft);color:var(--bad)}
+.key{font-family:var(--f-mono);font-size:.75rem;color:var(--muted)}
+
+/* board */
+.board{display:grid;grid-template-columns:repeat(4,minmax(220px,1fr));gap:12px;overflow-x:auto;padding-bottom:6px}
+.col{background:var(--sunk);border-radius:var(--r);padding:10px;min-height:160px;display:flex;flex-direction:column;gap:8px}
+.col.over{outline:2px dashed var(--accent);outline-offset:-4px}
+.col h3{display:flex;justify-content:space-between;align-items:baseline}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:9px 10px;display:grid;gap:6px;cursor:grab}
+.card .title{font-weight:600;overflow-wrap:anywhere;cursor:pointer}
+.card .foot{display:flex;justify-content:space-between;align-items:center;gap:6px;flex-wrap:wrap}
+
+.meter{height:10px;background:var(--sunk);border-radius:5px;overflow:hidden;position:relative}
+.meter > i{position:absolute;inset:0 auto 0 0;background:var(--accent);border-radius:5px}
+.meter.over > i{background:var(--bad)}
+.meter.ok > i{background:var(--ok)}
+
+.stats{display:flex;flex-wrap:wrap;gap:24px}
+.stat .n{font-family:var(--f-display);font-size:1.6rem;font-weight:700;font-variant-numeric:tabular-nums}
+
+.log{display:grid;gap:0}
+.log > div{display:grid;grid-template-columns:8.5rem minmax(0,1fr);gap:10px;padding:7px 0;border-bottom:1px solid var(--line)}
+.log time{font-family:var(--f-mono);font-size:.78rem;color:var(--muted)}
+
+.empty{border:1px dashed var(--line);border-radius:var(--r);padding:24px;text-align:center;color:var(--muted)}
+.note{background:var(--agent-soft);color:var(--ink);border-radius:6px;padding:8px 10px;font-size:.85rem;white-space:pre-wrap;overflow-wrap:anywhere}
+.note b{color:var(--agent)}
+pre.guide{background:var(--sunk);border-radius:6px;padding:12px;overflow-x:auto;font-family:var(--f-mono);font-size:.78rem;line-height:1.55;white-space:pre}
+.banner{background:var(--warn-soft);color:var(--warn);border-radius:6px;padding:8px 12px;margin-bottom:12px;font-weight:500}
+
+dialog{border:1px solid var(--line);border-radius:12px;background:var(--surface);color:var(--ink);padding:0;width:min(640px,calc(100vw - 32px));max-height:calc(100vh - 32px)}
+dialog::backdrop{background:rgba(10,15,25,.45)}
+dialog form{display:grid;gap:12px;padding:18px}
+dialog .actions{display:flex;gap:8px;justify-content:space-between;flex-wrap:wrap;border-top:1px solid var(--line);padding-top:12px}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(16px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);padding:8px 14px;border-radius:6px;font-weight:500;z-index:50}
+@media (max-width:640px){
+  .item{grid-template-columns:2rem minmax(0,1fr) auto}
+  .item .handle{display:none}
+  .log > div{grid-template-columns:1fr;gap:2px}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div>
+      <div class="eyebrow">Refinery · where backlogs get refined</div>
+      <div class="product-pick">
+        <h1 id="pname">Loading…</h1>
+      </div>
+      <div class="goalline" id="goalline"></div>
+    </div>
+    <div class="product-pick">
+      <label for="productSel" style="display:none">Product</label>
+      <select id="productSel" aria-label="Product"></select>
+      <button id="newProductBtn">New product</button>
+    </div>
+  </header>
+  <nav class="tabs" id="tabs" aria-label="Views"></nav>
+  <div id="banner"></div>
+  <main id="view"><div class="empty">Connecting to the shared backlog…</div></main>
+</div>
+
+<dialog id="itemDlg"><form id="itemForm" method="dialog"></form></dialog>
+<dialog id="prodDlg"><form id="prodForm" method="dialog">
+  <h2>New product</h2>
+  <label for="np-name"><span>Name</span><input id="np-name" required maxlength="80" placeholder="e.g. Red Flag Run app"></label>
+  <label for="np-key"><span>Item key prefix</span><input id="np-key" maxlength="6" placeholder="RFR"></label>
+  <label for="np-goal"><span>Product goal</span><textarea id="np-goal" placeholder="The single objective the team plans against"></textarea></label>
+  <div class="actions"><button type="button" id="np-cancel">Cancel</button><button class="primary" type="submit">Create product</button></div>
+</form></dialog>
+<div id="toast" class="toast" hidden></div>
+
+<script>
+const TABS=[["backlog","Backlog"],["planning","Sprint planning"],["board","Sprint board"],["review","Sprint review"],["goal","Goal & product review"],["feedback","Tester feedback"],["agents","Agent desk"],["activity","Activity"]];
+const STATUS=[["backlog","Backlog"],["ready","Ready"],["sprint","To do"],["doing","Doing"],["review","In review"],["done","Done"]];
+const STATUS_LABEL=Object.fromEntries(STATUS);
+const TYPES=["story","bug","task","spike","enabler"];
+const FIB=[0,1,2,3,5,8,13,21];
+const AGENT_ASK=[["none","No agent work"],["requested","Requested of agent"],["working","Agent working"],["done","Agent finished"]];
+const S={db:null,user:null,myId:null,canWrite:true,products:[],items:[],sprints:[],reviews:[],activity:[],feedback:[],pid:null,tab:"backlog",ready:{},sprintSel:null,filter:"open",fbFilter:"new",confirm:null};
+const FB_KIND=[["bug","Bug"],["confusing","Confusing"],["idea","Idea"],["praise","Praise"]];
+const FB_LABEL=Object.fromEntries(FB_KIND);
+
+const $=s=>document.querySelector(s);
+const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const now=()=>new Date().toISOString();
+const fmt=iso=>{if(!iso)return"";const d=new Date(iso);return d.toLocaleDateString(undefined,{day:"2-digit",month:"short"})+" "+d.toLocaleTimeString(undefined,{hour:"2-digit",minute:"2-digit"})};
+const fmtDay=iso=>iso?new Date(iso+(iso.length===10?"T00:00":"")).toLocaleDateString(undefined,{day:"numeric",month:"short",year:"numeric"}):"";
+function toast(t){const el=$("#toast");el.textContent=t;el.hidden=false;clearTimeout(toast.t);toast.t=setTimeout(()=>el.hidden=true,2400)}
+function store(k,v){try{v===undefined?localStorage.getItem(k):localStorage.setItem(k,v)}catch(e){}}
+function recall(k){try{return localStorage.getItem(k)}catch(e){return null}}
+
+/* ---------- derived ---------- */
+const P=()=>S.products.find(p=>p.id===S.pid);
+const itemsOf=()=>S.items.filter(i=>i.productId===S.pid).sort((a,b)=>(a.rank??0)-(b.rank??0));
+const sprintsOf=()=>S.sprints.filter(s=>s.productId===S.pid).sort((a,b)=>(b.start||"").localeCompare(a.start||""));
+const activeSprint=()=>sprintsOf().find(s=>s.state==="active");
+const pts=list=>list.reduce((n,i)=>n+(+i.effort||0),0);
+const score=i=>(+i.effort>0)?((+i.value||0)/(+i.effort)):null;
+const keyOf=i=>{const p=S.products.find(p=>p.id===i.productId);return (p?.keyPrefix||"PB")+"-"+(i.num??"?")};
+const actor=()=>S.myId?{type:"person",id:S.myId}:{type:"person",id:null};
+function whoHTML(a){if(!a)return"";if(a.type==="tester")return `<span>${esc(a.name||"A tester")} <span class="muted">(tester)</span></span>`;if(a.type==="agent")return `<span class="pill agent">${esc(a.name||"Agent")}</span>`;return `<span data-uid="${esc(a.id||"")}">Someone</span>`}
+async function fillNames(){
+  if(!S.user)return;
+  const els=[...document.querySelectorAll("[data-uid]")];const ids=[...new Set(els.map(e=>e.dataset.uid).filter(Boolean))];
+  if(!ids.length)return;const ps=await S.user.profiles(ids);
+  els.forEach(e=>{const p=ps[e.dataset.uid];if(p)e.textContent=p.isMe?"You":(p.name||"Someone")});
+}
+
+/* ---------- writes ---------- */
+async function guard(fn){
+  if(!S.db){toast("The shared backlog isn't connected in this view");return}
+  try{await fn()}catch(e){
+    if(e&&e.code==="invalid_argument"&&!S.canWriteChecked){S.canWrite=false;render();toast("You have view access only. Ask the owner for Contributor access to make changes.")}
+    else if(e&&e.code==="quota_exceeded")toast("Storage is full. Delete old items or activity to continue.");
+    else toast("Couldn't save: "+(e?.message||"try again"));
+  }
+}
+async function log(text,pid=S.pid){try{await S.db.collection("activity").add({productId:pid,at:now(),actor:actor(),text})}catch(e){}}
+async function saveItem(id,patch,msg){await guard(async()=>{await S.db.doc("items/"+id).update({...patch,updatedAt:now(),updatedBy:actor()});if(msg)await log(msg)})}
+
+/* ---------- render ---------- */
+let rq=0,pendingRender=false;
+function scheduleRender(){
+  const a=document.activeElement;
+  if(a&&$("#view").contains(a)&&/^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName)){pendingRender=true;return}
+  cancelAnimationFrame(rq);rq=requestAnimationFrame(render);
+}
+$("#view").addEventListener("focusout",()=>{if(pendingRender){pendingRender=false;setTimeout(scheduleRender,0)}});
+
+function render(){
+  // product select
+  const sel=$("#productSel");
+  sel.innerHTML=S.products.map(p=>`<option value="${esc(p.id)}">${esc(p.name)}</option>`).join("")||`<option value="">No products yet</option>`;
+  if(S.pid)sel.value=S.pid;
+  const p=P();
+  $("#pname").textContent=p?p.name:(S.ready.products?"No product yet":"Loading…");
+  $("#goalline").innerHTML=(p?.productOwner?`<b>Product owner:</b> ${esc(p.productOwner)}<br>`:"")+(p?.goal?`<b>Product goal:</b> ${esc(p.goal)}`:"")||(p?`<span>No product goal set yet.</span> <a href="#goal">Set one</a>`:"");
+  $("#newProductBtn").disabled=!S.canWrite;
+  // tabs
+  const its=itemsOf();
+  const inbox=its.filter(i=>i.approval==="pending").length;
+  const fbNew=S.feedback.filter(f=>f.productId===S.pid&&(f.status||"new")==="new").length;
+  const badge={agents:inbox,feedback:fbNew};
+  $("#tabs").innerHTML=TABS.map(([k,l])=>`<a href="#${k}" ${S.tab===k?'aria-current="page"':""}>${l}${badge[k]?`<span class="count">${badge[k]}</span>`:""}</a>`).join("");
+  $("#banner").innerHTML=!S.canWrite?`<div class="banner">You can view this room but not change it.</div>`:"";
+  const v=$("#view");
+  if(!S.db){v.innerHTML=`<div class="empty">The shared backlog can't be reached in this view. Open the page on claude.ai while signed in.</div>`;return}
+  if(!S.ready.products){v.innerHTML=`<div class="empty">Loading products…</div>`;return}
+  if(!p){v.innerHTML=`<div class="empty"><h2>Start with a product</h2><p>Each product gets its own backlog, sprints and goal, so work never mixes between them.</p><button class="primary" data-act="new-product">Create the first product</button></div>`;return}
+  ({backlog:vBacklog,planning:vPlanning,board:vBoard,review:vReview,goal:vGoal,feedback:vFeedback,agents:vAgents,activity:vActivity}[S.tab]||vBacklog)(v);
+  fillNames();
+}
+
+function itemRow(i,idx,opts={}){
+  const sc=score(i);const sp=i.sprintId?S.sprints.find(s=>s.id===i.sprintId):null;
+  return `<div class="item" data-id="${esc(i.id)}" ${opts.drag?'draggable="true"':""}>
+    ${opts.drag?'<span class="handle" title="Drag to reorder" aria-hidden="true">⋮⋮</span>':""}
+    <span class="rank">${idx+1}</span>
+    <div class="main" data-act="open" data-id="${esc(i.id)}">
+      <div class="title">${esc(i.title)}</div>
+      <div class="meta"><span class="key">${esc(keyOf(i))}</span><span>${esc(i.type||"story")}</span>
+        <span class="pill ${esc(i.status)}">${esc(STATUS_LABEL[i.status]||i.status)}</span>
+        ${sp?`<span class="pill">${esc(sp.name)}</span>`:""}
+        ${i.agentAsk&&i.agentAsk!=="none"?`<span class="pill agent">${esc(AGENT_ASK.find(a=>a[0]===i.agentAsk)?.[1]||"")}</span>`:""}
+        ${i.approval==="pending"?`<span class="pill pending">Awaiting your approval</span>`:""}
+        ${i.approval==="changes"?`<span class="pill changes">Changes requested</span>`:""}
+        ${i.assignee?`<span>→ ${esc(i.assignee)}</span>`:""}
+        ${i.feedbackId?`<span class="pill ready">From tester feedback</span>`:""}
+        ${i.createdBy?`<span>Added by ${whoHTML(i.createdBy)}</span>`:""}
+      </div>
+    </div>
+    <div class="side">
+      <span class="pts" title="Business value / effort points">V${esc(i.value??"–")} · ${esc(i.effort??"–")}pt${sc!=null?` · ${sc.toFixed(1)}`:""}</span>
+      ${opts.move?`<button class="ghost" data-act="up" data-id="${esc(i.id)}" aria-label="Move up" ${S.canWrite?"":"disabled"}>↑</button><button class="ghost" data-act="down" data-id="${esc(i.id)}" aria-label="Move down" ${S.canWrite?"":"disabled"}>↓</button>`:""}
+    </div></div>`;
+}
+
+function vBacklog(v){
+  const all=itemsOf();
+  const list=S.filter==="open"?all.filter(i=>i.status!=="done"):S.filter==="done"?all.filter(i=>i.status==="done"):all;
+  v.innerHTML=`<div class="bar">
+      <button class="primary" data-act="new-item" ${S.canWrite?"":"disabled"}>New item</button>
+      <select id="bl-filter" aria-label="Show"><option value="open">Open items</option><option value="all">All items</option><option value="done">Done</option></select>
+      <span class="grow"></span>
+      <span class="muted">${list.length} items · <span class="mono">${pts(list)}</span> pts</span>
+      <button data-act="sort-score" ${S.canWrite&&S.filter==="open"?"":"disabled"} title="Reorder open items by value ÷ effort, highest first">Order by value ÷ effort</button>
+    </div>
+    ${list.length?`<div class="list" id="bl-list">${list.map((i,ix)=>itemRow(i,ix,{drag:S.canWrite&&S.filter==="open",move:S.filter==="open"})).join("")}</div>`
+      :`<div class="empty">No items here yet. Add the first backlog item, or ask an agent to draft stories from your product goal.</div>`}`;
+  $("#bl-filter").value=S.filter;
+  if(S.canWrite&&S.filter==="open")wireDrag(list);
+}
+
+function wireDrag(list){
+  const box=$("#bl-list");let dragId=null;
+  box.addEventListener("dragstart",e=>{const r=e.target.closest(".item");if(!r)return;dragId=r.dataset.id;r.classList.add("dragging");e.dataTransfer.effectAllowed="move";try{e.dataTransfer.setData("text/plain",dragId)}catch(_){}});
+  box.addEventListener("dragend",e=>{box.querySelectorAll(".item").forEach(r=>r.classList.remove("dragging","drop-above"))});
+  box.addEventListener("dragover",e=>{e.preventDefault();const r=e.target.closest(".item");box.querySelectorAll(".drop-above").forEach(x=>x.classList.remove("drop-above"));if(r&&r.dataset.id!==dragId)r.classList.add("drop-above")});
+  box.addEventListener("drop",e=>{e.preventDefault();const r=e.target.closest(".item");if(!dragId)return;
+    const targetIdx=r?list.findIndex(i=>i.id===r.dataset.id):list.length;const moving=list.find(i=>i.id===dragId);
+    const rest=list.filter(i=>i.id!==dragId);const ti=r?rest.findIndex(i=>i.id===r.dataset.id):rest.length;
+    const before=rest[ti-1],after=rest[ti];
+    let rank;if(!before&&!after)rank=1000;else if(!before)rank=(after.rank??0)-1000;else if(!after)rank=(before.rank??0)+1000;else rank=((before.rank??0)+(after.rank??0))/2;
+    if(targetIdx<0||!moving)return;
+    saveItem(dragId,{rank},`Reprioritised “${moving.title}” to #${ti+1}`);dragId=null});
+}
+
+function sprintOptions(list,selId){return list.map(s=>`<option value="${esc(s.id)}" ${s.id===selId?"selected":""}>${esc(s.name)} · ${esc(s.state)}</option>`).join("")}
+function pickSprint(filter){
+  const list=sprintsOf().filter(filter);
+  if(!list.find(s=>s.id===S.sprintSel))S.sprintSel=(list.find(s=>s.state==="active")||list[0])?.id||null;
+  return {list,sp:list.find(s=>s.id===S.sprintSel)};
+}
+
+function vPlanning(v){
+  const {list,sp}=pickSprint(s=>s.state!=="closed");
+  const its=itemsOf();const active=activeSprint();
+  const newForm=`<div class="panel stack"><h3>New sprint</h3><div class="row-form">
+    <label for="ns-name"><span>Name</span><input id="ns-name" placeholder="Sprint ${sprintsOf().length+1}"></label>
+    <label for="ns-start"><span>Start</span><input id="ns-start" type="date"></label>
+    <label for="ns-end"><span>End</span><input id="ns-end" type="date"></label>
+    <label for="ns-cap"><span>Capacity (pts)</span><input id="ns-cap" type="number" min="0" value="20"></label></div>
+    <label for="ns-goal"><span>Sprint goal</span><input id="ns-goal" placeholder="What this sprint will achieve toward the product goal"></label>
+    <div><button class="primary" data-act="create-sprint" ${S.canWrite?"":"disabled"}>Create sprint</button></div></div>`;
+  if(!sp){v.innerHTML=`<div class="stack"><div class="empty">No open sprint. Create one to start planning.</div>${newForm}</div>`;return}
+  const inS=its.filter(i=>i.sprintId===sp.id);const cand=its.filter(i=>!i.sprintId&&i.status!=="done");
+  const committed=pts(inS),cap=+sp.capacity||0,pct=cap?Math.min(100,committed/cap*100):0;
+  v.innerHTML=`<div class="stack">
+    <div class="bar"><select id="sp-sel" aria-label="Sprint">${sprintOptions(list,sp.id)}</select><span class="grow"></span>
+      ${sp.state==="planned"?`<button class="primary" data-act="start-sprint" ${S.canWrite&&!active?"":"disabled"} title="${active?"Close the active sprint first":""}">Start sprint</button>`:`<span class="pill doing">Active</span>`}
+      <button data-act="toggle-new-sprint" ${S.canWrite?"":"disabled"}>New sprint</button></div>
+    <div id="newSprintBox" hidden>${newForm}</div>
+    <div class="panel stack">
+      <div class="row-form">
+        <label for="sp-goal" style="grid-column:1/-1"><span>Sprint goal</span><input id="sp-goal" value="${esc(sp.goal||"")}"></label>
+        <label for="sp-start"><span>Start</span><input id="sp-start" type="date" value="${esc(sp.start||"")}"></label>
+        <label for="sp-end"><span>End</span><input id="sp-end" type="date" value="${esc(sp.end||"")}"></label>
+        <label for="sp-cap"><span>Capacity (pts)</span><input id="sp-cap" type="number" min="0" value="${esc(sp.capacity??"")}"></label>
+        <div><button data-act="save-sprint" ${S.canWrite?"":"disabled"}>Save sprint details</button></div>
+      </div>
+      <div><div class="bar" style="margin:0 0 6px"><b class="mono">${committed} / ${cap} pts</b><span class="muted">committed</span></div>
+        <div class="meter ${committed>cap?"over":""}"><i style="width:${pct}%"></i></div>
+        ${committed>cap?`<div class="muted" style="margin-top:4px;color:var(--bad)">Over capacity by ${committed-cap} pts.</div>`:""}</div>
+    </div>
+    <div class="grid2">
+      <div class="stack"><h3>Candidates from the backlog <span class="muted">(by priority)</span></h3>
+        ${cand.length?cand.map(i=>`<div class="item" style="grid-template-columns:minmax(0,1fr) auto"><div class="main" data-act="open" data-id="${esc(i.id)}"><div class="title">${esc(i.title)}</div><div class="meta"><span class="key">${esc(keyOf(i))}</span><span class="pill ${esc(i.status)}">${esc(STATUS_LABEL[i.status])}</span><span class="pts">${esc(i.effort??"–")}pt</span></div></div><button data-act="add-to-sprint" data-id="${esc(i.id)}" ${S.canWrite?"":"disabled"}>Add →</button></div>`).join(""):`<div class="empty">Nothing left in the backlog.</div>`}
+      </div>
+      <div class="stack"><h3>In ${esc(sp.name)}</h3>
+        ${inS.length?inS.map(i=>`<div class="item" style="grid-template-columns:minmax(0,1fr) auto"><div class="main" data-act="open" data-id="${esc(i.id)}"><div class="title">${esc(i.title)}</div><div class="meta"><span class="key">${esc(keyOf(i))}</span><span class="pill ${esc(i.status)}">${esc(STATUS_LABEL[i.status])}</span><span class="pts">${esc(i.effort??"–")}pt</span>${i.effort==null||i.effort===""?`<span class="pill changes">Not estimated</span>`:""}</div></div><button class="ghost" data-act="remove-from-sprint" data-id="${esc(i.id)}" ${S.canWrite?"":"disabled"}>Remove</button></div>`).join(""):`<div class="empty">Add items from the left to build the sprint backlog.</div>`}
+      </div>
+    </div></div>`;
+}
+
+const BOARD_COLS=[["sprint","To do"],["doing","Doing"],["review","In review"],["done","Done"]];
+function vBoard(v){
+  const sp=activeSprint();
+  if(!sp){v.innerHTML=`<div class="empty">No active sprint. Plan one in <a href="#planning">Sprint planning</a> and start it.</div>`;return}
+  const inS=itemsOf().filter(i=>i.sprintId===sp.id);const done=pts(inS.filter(i=>i.status==="done")),all=pts(inS);
+  v.innerHTML=`<div class="stack"><div class="panel"><div class="bar" style="margin:0"><h2>${esc(sp.name)}</h2><span class="muted">${esc(fmtDay(sp.start))} – ${esc(fmtDay(sp.end))}</span><span class="grow"></span><span class="mono">${done}/${all} pts done</span></div>
+    ${sp.goal?`<p style="margin:6px 0 8px"><b>Sprint goal:</b> ${esc(sp.goal)}</p>`:""}<div class="meter ok"><i style="width:${all?done/all*100:0}%"></i></div></div>
+    <div class="board" id="board">${BOARD_COLS.map(([k,l],ci)=>{const cs=inS.filter(i=>(k==="sprint"?["sprint","ready","backlog"].includes(i.status):i.status===k));
+      return `<div class="col" data-col="${k}"><h3>${l}<span class="mono muted">${pts(cs)}pt</span></h3>${cs.map(i=>`<div class="card" draggable="${S.canWrite}" data-id="${esc(i.id)}">
+        <div class="title" data-act="open" data-id="${esc(i.id)}">${esc(i.title)}</div>
+        <div class="meta" style="display:flex;gap:6px;flex-wrap:wrap;font-size:.76rem;color:var(--muted)"><span class="key">${esc(keyOf(i))}</span>${i.assignee?`<span>→ ${esc(i.assignee)}</span>`:""}${i.approval==="pending"?`<span class="pill pending">Approve</span>`:""}</div>
+        <div class="foot"><span class="pts">${esc(i.effort??"–")}pt</span><span>
+          <button class="ghost" data-act="col-move" data-dir="-1" data-id="${esc(i.id)}" aria-label="Move left" ${ci===0||!S.canWrite?"disabled":""}>←</button>
+          <button class="ghost" data-act="col-move" data-dir="1" data-id="${esc(i.id)}" aria-label="Move right" ${ci===3||!S.canWrite?"disabled":""}>→</button></span></div></div>`).join("")}</div>`}).join("")}</div></div>`;
+  const b=$("#board");
+  b.addEventListener("dragstart",e=>{const c=e.target.closest(".card");if(c)try{e.dataTransfer.setData("text/plain",c.dataset.id)}catch(_){}});
+  b.addEventListener("dragover",e=>{const c=e.target.closest(".col");if(c){e.preventDefault();b.querySelectorAll(".over").forEach(x=>x.classList.remove("over"));c.classList.add("over")}});
+  b.addEventListener("dragleave",e=>{if(!b.contains(e.relatedTarget))b.querySelectorAll(".over").forEach(x=>x.classList.remove("over"))});
+  b.addEventListener("drop",e=>{const c=e.target.closest(".col");b.querySelectorAll(".over").forEach(x=>x.classList.remove("over"));if(!c)return;e.preventDefault();let id="";try{id=e.dataTransfer.getData("text/plain")}catch(_){}const it=S.items.find(i=>i.id===id);if(it&&it.status!==c.dataset.col)saveItem(id,{status:c.dataset.col},`Moved “${it.title}” to ${STATUS_LABEL[c.dataset.col]}`)});
+}
+
+function vReview(v){
+  const {list,sp}=pickSprint(s=>s.state!=="planned");
+  if(!sp){v.innerHTML=`<div class="empty">Sprint review opens once a sprint has started.</div>`;return}
+  const inS=itemsOf().filter(i=>i.sprintId===sp.id||(sp.state==="closed"&&(sp.doneIds||[]).includes(i.id)));
+  const done=inS.filter(i=>i.status==="done"),open=inS.filter(i=>i.status!=="done");
+  const committed=sp.state==="closed"?(sp.committedPts??pts(inS)):pts(inS);const donePts=sp.state==="closed"?(sp.donePts??pts(done)):pts(done);
+  const confirming=S.confirm==="close-"+sp.id;
+  v.innerHTML=`<div class="stack">
+    <div class="bar"><select id="rv-sel" aria-label="Sprint">${sprintOptions(list,sp.id)}</select><span class="grow"></span>
+      ${sp.state==="active"?(confirming?`<span class="muted">${open.length} unfinished item(s) go back to Ready.</span><button class="danger" data-act="close-sprint" data-id="${esc(sp.id)}">Confirm close</button><button data-act="cancel-confirm">Cancel</button>`:`<button class="primary" data-act="ask-close" data-id="${esc(sp.id)}" ${S.canWrite?"":"disabled"}>Close sprint</button>`):`<span class="pill done">Closed</span>`}</div>
+    <div class="panel stack"><div><div class="eyebrow">Sprint goal</div><p style="margin:2px 0 0">${esc(sp.goal||"No sprint goal recorded.")}</p></div>
+      <div class="stats"><div class="stat"><div class="eyebrow">Committed</div><div class="n">${committed}<span class="muted" style="font-size:.9rem"> pt</span></div></div>
+      <div class="stat"><div class="eyebrow">Done</div><div class="n">${donePts}<span class="muted" style="font-size:.9rem"> pt</span></div></div>
+      <div class="stat"><div class="eyebrow">Completion</div><div class="n">${committed?Math.round(donePts/committed*100):0}%</div></div></div></div>
+    <div class="grid2">
+      <div class="stack"><h3>Done — demo these</h3>${done.length?done.map((i,ix)=>itemRow(i,ix)).join(""):`<div class="empty">Nothing done yet.</div>`}</div>
+      <div class="stack"><h3>Not done</h3>${open.length?open.map((i,ix)=>itemRow(i,ix)).join(""):`<div class="empty">Everything committed is done.</div>`}</div>
+    </div>
+    <div class="grid2">
+      <label for="rv-notes"><span>Sprint review notes — stakeholder feedback, backlog changes</span><textarea id="rv-notes">${esc(sp.reviewNotes||"")}</textarea></label>
+      <label for="rv-retro"><span>Retrospective — keep, change, try</span><textarea id="rv-retro">${esc(sp.retroNotes||"")}</textarea></label>
+    </div><div><button data-act="save-review" ${S.canWrite?"":"disabled"}>Save review notes</button></div></div>`;
+}
+
+function vGoal(v){
+  const p=P();const its=itemsOf();const done=its.filter(i=>i.status==="done");
+  const revs=S.reviews.filter(r=>r.productId===S.pid).sort((a,b)=>(b.date||"").localeCompare(a.date||""));
+  const by=STATUS.map(([k,l])=>[l,its.filter(i=>i.status===k).length]);
+  v.innerHTML=`<div class="grid2">
+    <div class="panel stack"><h2>Product goal</h2>
+      <label for="g-name"><span>Product name</span><input id="g-name" value="${esc(p.name)}"></label>
+      <label for="g-owner"><span>Product owner</span><input id="g-owner" value="${esc(p.productOwner||"")}"></label>
+      <label for="g-vision"><span>Vision</span><textarea id="g-vision" placeholder="Who it's for and the change it makes">${esc(p.vision||"")}</textarea></label>
+      <label for="g-goal"><span>Product goal</span><textarea id="g-goal">${esc(p.goal||"")}</textarea></label>
+      <label for="g-metric"><span>How we'll know (measure)</span><input id="g-metric" value="${esc(p.goalMetric||"")}" placeholder="e.g. 500 weekly active learners by March"></label>
+      <label for="g-key"><span>Item key prefix</span><input id="g-key" maxlength="6" value="${esc(p.keyPrefix||"")}"></label>
+      <div><button class="primary" data-act="save-goal" ${S.canWrite?"":"disabled"}>Save goal</button></div></div>
+    <div class="panel stack"><h2>Progress</h2>
+      <div class="stats"><div class="stat"><div class="eyebrow">Done</div><div class="n">${pts(done)}<span class="muted" style="font-size:.9rem"> / ${pts(its)} pt</span></div></div>
+        <div class="stat"><div class="eyebrow">Items</div><div class="n">${done.length}<span class="muted" style="font-size:.9rem"> / ${its.length}</span></div></div>
+        <div class="stat"><div class="eyebrow">Sprints closed</div><div class="n">${sprintsOf().filter(s=>s.state==="closed").length}</div></div></div>
+      <div class="meter ok"><i style="width:${pts(its)?pts(done)/pts(its)*100:0}%"></i></div>
+      <div class="log">${by.map(([l,n])=>`<div><span class="muted">${l}</span><span class="mono">${n}</span></div>`).join("")}</div></div>
+  </div>
+  <div class="panel stack" style="margin-top:16px"><h2>Product review log</h2>
+    <p class="muted" style="margin:0">Record each product review: what you inspected, what you learned, and what you decided about the goal and backlog.</p>
+    <div class="row-form"><label for="pr-date"><span>Date</span><input id="pr-date" type="date" value="${new Date().toISOString().slice(0,10)}"></label></div>
+    <div class="grid2"><label for="pr-notes"><span>What we inspected and learned</span><textarea id="pr-notes"></textarea></label>
+      <label for="pr-dec"><span>Decisions — goal, priorities, items added or dropped</span><textarea id="pr-dec"></textarea></label></div>
+    <div><button data-act="add-review" ${S.canWrite?"":"disabled"}>Add review entry</button></div>
+    ${revs.length?revs.map(r=>`<div style="border-top:1px solid var(--line);padding-top:10px"><div class="bar" style="margin:0 0 4px"><b>${esc(fmtDay(r.date))}</b><span class="muted">by ${whoHTML(r.by)}</span></div>
+      ${r.notes?`<p style="margin:0 0 6px;white-space:pre-wrap">${esc(r.notes)}</p>`:""}${r.decisions?`<p style="margin:0;white-space:pre-wrap"><b>Decided:</b> ${esc(r.decisions)}</p>`:""}</div>`).join(""):`<div class="empty">No product reviews recorded yet.</div>`}
+  </div>`;
+}
+
+function vAgents(v){
+  const its=itemsOf();
+  const pend=its.filter(i=>i.approval==="pending"),req=its.filter(i=>i.agentAsk==="requested"),work=its.filter(i=>i.agentAsk==="working");
+  const card=(i,approve)=>`<div class="panel stack" style="padding:12px">
+    <div class="bar" style="margin:0"><span class="key">${esc(keyOf(i))}</span><b class="main" data-act="open" data-id="${esc(i.id)}" style="cursor:pointer;overflow-wrap:anywhere">${esc(i.title)}</b><span class="grow"></span><span class="pill ${esc(i.status)}">${esc(STATUS_LABEL[i.status])}</span></div>
+    ${i.agentInstructions?`<div class="muted" style="white-space:pre-wrap"><b>Ask:</b> ${esc(i.agentInstructions)}</div>`:""}
+    ${i.agentNote?`<div class="note"><b>Agent note${i.updatedBy?.type==="agent"?" · "+esc(i.updatedBy.name||""):""}:</b> ${esc(i.agentNote)}</div>`:""}
+    ${approve?`<label for="fb-${esc(i.id)}"><span>Feedback if sending back</span><input id="fb-${esc(i.id)}"></label>
+      <div class="bar" style="margin:0"><button class="primary" data-act="approve" data-id="${esc(i.id)}" ${S.canWrite?"":"disabled"}>Approve</button><button data-act="send-back" data-id="${esc(i.id)}" ${S.canWrite?"":"disabled"}>Send back</button><span class="muted">Last change ${esc(fmt(i.updatedAt))}</span></div>`:""}</div>`;
+  v.innerHTML=`<div class="stack">
+    <h2>Awaiting your approval <span class="muted mono">${pend.length}</span></h2>
+    ${pend.length?pend.map(i=>card(i,true)).join(""):`<div class="empty">Nothing waiting. Agent changes that need a product owner's sign-off appear here.</div>`}
+    <div class="grid2"><div class="stack"><h3>Requested of agents <span class="muted mono">${req.length}</span></h3>${req.length?req.map(i=>card(i)).join(""):`<div class="empty">Open an item and set “Agent work” to Requested.</div>`}</div>
+      <div class="stack"><h3>Agents working <span class="muted mono">${work.length}</span></h3>${work.length?work.map(i=>card(i)).join(""):`<div class="empty">No agent is working on an item right now.</div>`}</div></div>
+    <details class="panel"><summary><b>How agents read and update this room</b></summary>
+      <p>Agents (Claude in chat or a scheduled task) work through this page's shared database. Paste the link to this room into the agent's instructions with the rules below.</p>
+      <pre class="guide" id="guideText">${esc(GUIDE)}</pre><button data-act="copy-guide">Copy agent instructions</button></details>
+  </div>`;
+}
+
+function vActivity(v){
+  const a=S.activity.filter(x=>x.productId===S.pid);
+  v.innerHTML=a.length?`<div class="panel"><div class="log">${a.map(x=>`<div><time>${esc(fmt(x.at))}</time><span>${whoHTML(x.actor)} ${esc(x.text)}</span></div>`).join("")}</div></div>`:`<div class="empty">Changes by people and agents show here.</div>`;
+}
+
+const GUIDE=`Shared collections (one product = one space; always filter by productId):
+products/{id}  name, keyPrefix, vision, goal, goalMetric
+items/{id}     productId, num, title, description, type (story|bug|task|spike|enabler),
+               status (backlog|ready|sprint|doing|review|done), rank (lower = higher priority),
+               value (1-10), effort (story points), acceptance, assignee, sprintId|null,
+               agentAsk (none|requested|working|done), agentInstructions, agentNote,
+               approval (none|pending|approved|changes), feedbackId,
+               createdAt, createdBy, updatedAt (ISO), updatedBy
+feedback/{id}  productId, kind (bug|confusing|idea|praise), title, details, device,
+               rating (1-5|null), source (room|email), status (new|accepted|declined),
+               at (ISO), submittedBy ({"type":"tester","name"} or a person), itemId, triageNote
+sprints/{id}   productId, name, goal, start, end, capacity, state (planned|active|closed),
+               reviewNotes, retroNotes
+reviews/{id}   productId, date, notes, decisions, by
+activity/{id}  productId, at (ISO), actor, text
+
+Rules for agents:
+1. Pick up items where agentAsk = "requested". Set agentAsk = "working" before you start.
+2. Write results into the item (description, acceptance, effort, agentNote).
+   Set updatedBy = {"type":"agent","name":"<your agent name>"} and updatedAt = now.
+3. When finished set agentAsk = "done" and approval = "pending". Never set approval to "approved";
+   only a product owner approves. Never change rank, sprintId or product goals unless asked.
+4. New items you propose: status "backlog", approval "pending", rank after the last item,
+   createdBy = {"type":"agent","name":"<your agent name>"}.
+   Tester feedback you bring in (e.g. from email) goes to feedback/ with status "new" and
+   source "email"; never turn feedback into backlog items yourself, a product owner triages it.
+5. Add one activity row per change: {"productId","at","actor":{"type":"agent","name"},"text"}.
+6. If approval = "changes", read agentNote/feedback, revise, then set approval back to "pending".
+7. Nothing leaves this room (posts, emails) without a product owner's approval.`;
+
+/* ---------- item dialog ---------- */
+function openItem(id){
+  const i=id?S.items.find(x=>x.id===id):null;
+  const sps=sprintsOf().filter(s=>s.state!=="closed");
+  const f=$("#itemForm");const ro=S.canWrite?"":"disabled";
+  f.innerHTML=`<div class="bar" style="margin:0"><h2>${i?"Edit item":"New backlog item"}</h2>${i?`<span class="key">${esc(keyOf(i))}</span>`:""}<span class="grow"></span>${i?`<span class="muted" style="font-size:.8rem">${i.createdBy?`Added by ${whoHTML(i.createdBy)} · `:""}Updated ${esc(fmt(i.updatedAt))} by ${whoHTML(i.updatedBy)}</span>`:""}</div>
+    <label for="it-title"><span>Title</span><input id="it-title" required maxlength="160" value="${esc(i?.title||"")}" placeholder="As a … I want … so that …" ${ro}></label>
+    <div class="row-form">
+      <label for="it-type"><span>Type</span><select id="it-type" ${ro}>${TYPES.map(t=>`<option ${i?.type===t?"selected":""}>${t}</option>`).join("")}</select></label>
+      <label for="it-status"><span>Status</span><select id="it-status" ${ro}>${STATUS.map(([k,l])=>`<option value="${k}" ${(i?.status||"backlog")===k?"selected":""}>${l}</option>`).join("")}</select></label>
+      <label for="it-value"><span>Value (1–10)</span><input id="it-value" type="number" min="1" max="10" value="${esc(i?.value??"")}" ${ro}></label>
+      <label for="it-effort"><span>Effort (pts)</span><select id="it-effort" ${ro}><option value="">Not estimated</option>${FIB.map(n=>`<option ${String(i?.effort)===String(n)?"selected":""}>${n}</option>`).join("")}</select></label>
+      <label for="it-sprint"><span>Sprint</span><select id="it-sprint" ${ro}><option value="">None</option>${sps.map(s=>`<option value="${esc(s.id)}" ${i?.sprintId===s.id?"selected":""}>${esc(s.name)}</option>`).join("")}</select></label>
+      <label for="it-assignee"><span>Assignee (person or agent)</span><input id="it-assignee" value="${esc(i?.assignee||"")}" ${ro}></label>
+    </div>
+    <label for="it-desc"><span>Description</span><textarea id="it-desc" ${ro}>${esc(i?.description||"")}</textarea></label>
+    <label for="it-acc"><span>Acceptance criteria</span><textarea id="it-acc" placeholder="Given … when … then …" ${ro}>${esc(i?.acceptance||"")}</textarea></label>
+    <div class="row-form"><label for="it-ask"><span>Agent work</span><select id="it-ask" ${ro}>${AGENT_ASK.map(([k,l])=>`<option value="${k}" ${(i?.agentAsk||"none")===k?"selected":""}>${l}</option>`).join("")}</select></label></div>
+    <label for="it-instr"><span>Instructions for the agent</span><textarea id="it-instr" placeholder="e.g. Split into stories under 8 pts and draft acceptance criteria" ${ro}>${esc(i?.agentInstructions||"")}</textarea></label>
+    ${i?.agentNote?`<div class="note"><b>Agent note:</b> ${esc(i.agentNote)}</div>`:""}
+    <div class="actions"><span>${i&&S.canWrite?`<button type="button" class="danger" id="it-del">Delete</button>`:""}</span>
+      <span style="display:flex;gap:8px"><button type="button" id="it-cancel">${S.canWrite?"Cancel":"Close"}</button>${S.canWrite?`<button class="primary" type="submit">${i?"Save":"Add to backlog"}</button>`:""}</span></div>`;
+  f.dataset.id=id||"";
+  $("#itemDlg").showModal();fillNames();
+  $("#it-cancel").onclick=()=>$("#itemDlg").close();
+  const del=$("#it-del");
+  if(del)del.onclick=()=>{if(del.dataset.armed){$("#itemDlg").close();guard(async()=>{await S.db.doc("items/"+id).delete();await log(`Deleted “${i.title}”`)})}else{del.dataset.armed="1";del.textContent="Click again to delete"}};
+}
+$("#itemForm").addEventListener("submit",e=>{
+  e.preventDefault();const id=e.target.dataset.id;const g=k=>$("#"+k).value;
+  const effort=g("it-effort")===""?null:+g("it-effort");const value=g("it-value")===""?null:Math.max(1,Math.min(10,+g("it-value")));
+  const data={title:g("it-title").trim(),type:g("it-type"),status:g("it-status"),value,effort,sprintId:g("it-sprint")||null,assignee:g("it-assignee").trim(),description:g("it-desc"),acceptance:g("it-acc"),agentAsk:g("it-ask"),agentInstructions:g("it-instr")};
+  if(!data.title)return;$("#itemDlg").close();
+  if(id){const old=S.items.find(x=>x.id===id);saveItem(id,data,`Updated “${data.title}”${old&&old.status!==data.status?` → ${STATUS_LABEL[data.status]}`:""}${old&&old.agentAsk!=="requested"&&data.agentAsk==="requested"?" and asked an agent":""}`)}
+  else guard(async()=>{await createItem(data);await log(`Added “${data.title}”`);toast("Added to backlog")});
+});
+async function createItem(data){
+  const its=itemsOf();const rank=(its.length?Math.max(...its.map(i=>i.rank??0)):0)+1000;const num=(its.length?Math.max(...its.map(i=>+i.num||0)):0)+1;
+  return S.db.collection("items").add({agentAsk:"none",agentInstructions:"",sprintId:null,assignee:"",acceptance:"",...data,productId:S.pid,rank,num,approval:"none",agentNote:"",createdAt:now(),createdBy:actor(),updatedAt:now(),updatedBy:actor()});
+}
+
+function vFeedback(v){
+  const all=S.feedback.filter(f=>f.productId===S.pid).sort((a,b)=>(b.at||"").localeCompare(a.at||""));
+  const isNew=f=>(f.status||"new")==="new";
+  const list=S.fbFilter==="new"?all.filter(isNew):all;const n=all.filter(isNew).length;
+  const ro=S.canWrite?"":"disabled";
+  v.innerHTML=`<div class="stack">
+    <details class="panel" ${all.length?"":"open"}><summary><b>Add tester feedback</b></summary>
+      <div class="stack" style="margin-top:12px">
+        <div class="row-form">
+          <label for="fb-kind"><span>Kind</span><select id="fb-kind" ${ro}>${FB_KIND.map(([k,l])=>`<option value="${k}">${l}</option>`).join("")}</select></label>
+          <label for="fb-rating"><span>Rating</span><select id="fb-rating" ${ro}><option value="">No rating</option>${[5,4,3,2,1].map(r=>`<option value="${r}">${"★".repeat(r)}${"☆".repeat(5-r)}</option>`).join("")}</select></label>
+          <label for="fb-device"><span>Device and version</span><input id="fb-device" placeholder="e.g. Pixel 7, preview build" ${ro}></label>
+          <label for="fb-tester"><span>Tester name</span><input id="fb-tester" placeholder="Blank if it's your own" ${ro}></label>
+        </div>
+        <label for="fb-title"><span>Summary</span><input id="fb-title" maxlength="160" placeholder="What happened, in one line" ${ro}></label>
+        <label for="fb-details"><span>Details</span><textarea id="fb-details" placeholder="Steps, what you expected, what you saw" ${ro}></textarea></label>
+        <div><button class="primary" data-act="submit-feedback" ${ro}>Submit feedback</button></div>
+      </div></details>
+    <div class="bar"><select id="fb-filter" aria-label="Show"><option value="new" ${S.fbFilter==="new"?"selected":""}>New (${n})</option><option value="all" ${S.fbFilter==="all"?"selected":""}>All feedback</option></select><span class="grow"></span><span class="muted">${all.length} received</span></div>
+    ${list.length?list.map(f=>{const st=f.status||"new";const linked=f.itemId&&S.items.find(i=>i.id===f.itemId);
+      return `<div class="panel stack" style="padding:12px">
+        <div class="bar" style="margin:0"><span class="pill ${f.kind==="bug"?"changes":f.kind==="praise"?"done":f.kind==="idea"?"ready":"doing"}">${esc(FB_LABEL[f.kind]||f.kind)}</span>
+          <b style="overflow-wrap:anywhere">${esc(f.title)}</b><span class="grow"></span>${f.rating?`<span class="mono" aria-label="${f.rating} of 5">${"★".repeat(f.rating)}${"☆".repeat(5-f.rating)}</span>`:""}</div>
+        ${f.details?`<div style="white-space:pre-wrap;overflow-wrap:anywhere">${esc(f.details)}</div>`:""}
+        <div class="meta" style="display:flex;flex-wrap:wrap;gap:8px;font-size:.8rem;color:var(--muted)"><span>From ${whoHTML(f.submittedBy)}</span>${f.device?`<span>${esc(f.device)}</span>`:""}<span>${esc(fmt(f.at))}</span>${f.source==="email"?`<span class="pill">via email</span>`:""}</div>
+        ${st==="new"?`<label for="fbn-${esc(f.id)}"><span>Note for the tester or team (optional)</span><input id="fbn-${esc(f.id)}" ${ro}></label>
+          <div class="bar" style="margin:0"><button class="primary" data-act="fb-accept" data-id="${esc(f.id)}" ${ro}>Add to backlog</button><button data-act="fb-decline" data-id="${esc(f.id)}" ${ro}>Decline</button></div>`
+        :`<div class="bar" style="margin:0"><span class="pill ${st==="accepted"?"done":""}">${st==="accepted"?"Added to backlog":"Declined"}</span>
+          ${linked?`<button class="ghost" data-act="open" data-id="${esc(linked.id)}">${esc(keyOf(linked))} · ${esc(linked.title)}</button>`:""}
+          ${f.triageNote?`<span class="muted">${esc(f.triageNote)}</span>`:""}<span class="grow"></span>${f.triagedBy?`<span class="muted" style="font-size:.8rem">by ${whoHTML(f.triagedBy)}</span>`:""}
+          ${st==="declined"?`<button class="ghost" data-act="fb-reopen" data-id="${esc(f.id)}" ${ro}>Reopen</button>`:""}</div>`}
+      </div>`}).join(""):`<div class="empty">${S.fbFilter==="new"&&all.length?"All feedback has been triaged.":"No tester feedback yet. Add what testers tell you here, or have an agent bring it in from email."}</div>`}
+  </div>`;
+}
+
+/* ---------- actions ---------- */
+document.addEventListener("click",e=>{
+  const b=e.target.closest("[data-act]");if(!b)return;const act=b.dataset.act,id=b.dataset.id;const it=id&&S.items.find(i=>i.id===id);
+  const A={
+    "open":()=>openItem(id),
+    "new-item":()=>openItem(null),
+    "new-product":()=>openProduct(),
+    "up":()=>swap(id,-1),"down":()=>swap(id,1),
+    "sort-score":()=>guard(async()=>{const list=itemsOf().filter(i=>i.status!=="done");const sorted=[...list].sort((a,b)=>(score(b)??-1)-(score(a)??-1));
+      for(let k=0;k<sorted.length;k++){const r=(k+1)*1000;if(sorted[k].rank!==r)await S.db.doc("items/"+sorted[k].id).update({rank:r,updatedAt:now(),updatedBy:actor()})}await log("Reordered the backlog by value ÷ effort");toast("Backlog reordered")}),
+    "toggle-new-sprint":()=>{const x=$("#newSprintBox");x.hidden=!x.hidden},
+    "create-sprint":()=>guard(async()=>{const name=$("#ns-name").value.trim()||`Sprint ${sprintsOf().length+1}`;const ref=await S.db.collection("sprints").add({productId:S.pid,name,goal:$("#ns-goal").value.trim(),start:$("#ns-start").value,end:$("#ns-end").value,capacity:+$("#ns-cap").value||0,state:"planned",createdAt:now()});S.sprintSel=ref.id;await log(`Created ${name}`);toast("Sprint created")}),
+    "save-sprint":()=>guard(async()=>{await S.db.doc("sprints/"+S.sprintSel).update({goal:$("#sp-goal").value.trim(),start:$("#sp-start").value,end:$("#sp-end").value,capacity:+$("#sp-cap").value||0});toast("Sprint saved")}),
+    "add-to-sprint":()=>saveItem(id,{sprintId:S.sprintSel,status:it.status==="backlog"?"ready":it.status},`Pulled “${it.title}” into the sprint`),
+    "remove-from-sprint":()=>saveItem(id,{sprintId:null,status:["sprint","doing","review"].includes(it.status)?"ready":it.status},`Took “${it.title}” out of the sprint`),
+    "start-sprint":()=>guard(async()=>{const sp=S.sprints.find(s=>s.id===S.sprintSel);await S.db.doc("sprints/"+sp.id).update({state:"active",start:sp.start||new Date().toISOString().slice(0,10)});
+      for(const i of itemsOf().filter(i=>i.sprintId===sp.id&&["backlog","ready"].includes(i.status)))await S.db.doc("items/"+i.id).update({status:"sprint",updatedAt:now(),updatedBy:actor()});
+      await log(`Started ${sp.name}`);toast("Sprint started");location.hash="board"}),
+    "col-move":()=>{const order=BOARD_COLS.map(c=>c[0]);let ix=order.indexOf(it.status);if(ix<0)ix=0;const nx=order[ix+(+b.dataset.dir)];if(nx)saveItem(id,{status:nx},`Moved “${it.title}” to ${STATUS_LABEL[nx]}`)},
+    "ask-close":()=>{S.confirm="close-"+id;render()},
+    "cancel-confirm":()=>{S.confirm=null;render()},
+    "close-sprint":()=>guard(async()=>{S.confirm=null;const sp=S.sprints.find(s=>s.id===id);const inS=itemsOf().filter(i=>i.sprintId===id);const done=inS.filter(i=>i.status==="done");
+      await S.db.doc("sprints/"+id).update({state:"closed",committedPts:pts(inS),donePts:pts(done),doneIds:done.map(i=>i.id),closedAt:now(),reviewNotes:$("#rv-notes")?.value??sp.reviewNotes??"",retroNotes:$("#rv-retro")?.value??sp.retroNotes??""});
+      for(const i of inS.filter(i=>i.status!=="done"))await S.db.doc("items/"+i.id).update({sprintId:null,status:"ready",updatedAt:now(),updatedBy:actor()});
+      await log(`Closed ${sp.name}: ${pts(done)} of ${pts(inS)} pts done`);toast("Sprint closed")}),
+    "save-review":()=>guard(async()=>{await S.db.doc("sprints/"+S.sprintSel).update({reviewNotes:$("#rv-notes").value,retroNotes:$("#rv-retro").value});await log("Updated sprint review notes");toast("Review notes saved")}),
+    "save-goal":()=>guard(async()=>{const name=$("#g-name").value.trim()||P().name;await S.db.doc("products/"+S.pid).update({name,productOwner:$("#g-owner").value.trim(),vision:$("#g-vision").value,goal:$("#g-goal").value.trim(),goalMetric:$("#g-metric").value.trim(),keyPrefix:($("#g-key").value.trim()||"PB").toUpperCase()});await log("Updated the product goal");toast("Goal saved")}),
+    "add-review":()=>guard(async()=>{const notes=$("#pr-notes").value.trim(),decisions=$("#pr-dec").value.trim();if(!notes&&!decisions){toast("Add notes or decisions first");return}
+      await S.db.collection("reviews").add({productId:S.pid,date:$("#pr-date").value,notes,decisions,by:actor(),at:now()});$("#pr-notes").value="";$("#pr-dec").value="";await log("Recorded a product review");toast("Review recorded")}),
+    "submit-feedback":()=>{const title=$("#fb-title").value.trim();if(!title){toast("Add a one-line summary first");$("#fb-title").focus();return}
+      const tester=$("#fb-tester").value.trim();const rating=$("#fb-rating").value;
+      guard(async()=>{await S.db.collection("feedback").add({productId:S.pid,kind:$("#fb-kind").value,title,details:$("#fb-details").value.trim(),device:$("#fb-device").value.trim(),rating:rating?+rating:null,source:"room",status:"new",at:now(),submittedBy:tester?{type:"tester",name:tester}:actor()});
+        await log(`Logged tester feedback: “${title}”`);["fb-title","fb-details","fb-device","fb-tester"].forEach(k=>$("#"+k).value="");$("#fb-rating").value="";toast("Feedback added")})},
+    "fb-accept":()=>{const f=S.feedback.find(x=>x.id===id);const note=$("#fbn-"+CSS.escape(id))?.value.trim()||"";
+      guard(async()=>{const ref=await createItem({title:f.title,type:f.kind==="bug"?"bug":"story",status:"backlog",value:null,effort:null,feedbackId:f.id,
+          description:[f.details,`Tester feedback${f.submittedBy?.type==="tester"?" from "+f.submittedBy.name:""}${f.device?" · "+f.device:""}${f.rating?" · rated "+f.rating+"/5":""}.`,note].filter(Boolean).join("\n\n")});
+        await S.db.doc("feedback/"+f.id).update({status:"accepted",itemId:ref.id,triageNote:note,triagedBy:actor(),triagedAt:now()});
+        await log(`Turned tester feedback “${f.title}” into a backlog item`);toast("Added to backlog")})},
+    "fb-decline":()=>{const f=S.feedback.find(x=>x.id===id);const note=$("#fbn-"+CSS.escape(id))?.value.trim()||"";
+      guard(async()=>{await S.db.doc("feedback/"+f.id).update({status:"declined",triageNote:note,triagedBy:actor(),triagedAt:now()});await log(`Declined tester feedback “${f.title}”`)})},
+    "fb-reopen":()=>guard(async()=>{await S.db.doc("feedback/"+id).update({status:"new",triageNote:""})}),
+    "approve":()=>saveItem(id,{approval:"approved",agentAsk:it.agentAsk==="done"?"none":it.agentAsk},`Approved agent work on “${it.title}”`),
+    "send-back":()=>{const fb=$("#fb-"+CSS.escape(id))?.value.trim();saveItem(id,{approval:"changes",agentAsk:"requested",agentInstructions:(it.agentInstructions||"")+(fb?`\n\nPO feedback (${new Date().toLocaleDateString()}): ${fb}`:"")},`Sent “${it.title}” back to the agent`)},
+    "copy-guide":()=>{const t=GUIDE+"\n\nRoom link: "+(location.href.split("#")[0]);navigator.clipboard.writeText(t).then(()=>toast("Copied"),()=>{const r=document.createRange();r.selectNodeContents($("#guideText"));const s=getSelection();s.removeAllRanges();s.addRange(r);toast("Selected — press Ctrl/Cmd+C")})},
+  };
+  if(A[act]){e.preventDefault();A[act]()}
+});
+document.addEventListener("change",e=>{
+  if(e.target.id==="bl-filter"){S.filter=e.target.value;render()}
+  if(e.target.id==="fb-filter"){S.fbFilter=e.target.value;render()}
+  if(e.target.id==="sp-sel"||e.target.id==="rv-sel"){S.sprintSel=e.target.value;S.confirm=null;render()}
+  if(e.target.id==="productSel"){S.pid=e.target.value;S.sprintSel=null;store("po-room-pid",S.pid);render()}
+});
+async function swap(id,dir){
+  const list=itemsOf().filter(i=>i.status!=="done");const ix=list.findIndex(i=>i.id===id);const other=list[ix+dir];if(!other)return;
+  const a=list[ix];let ra=a.rank??ix*1000,rb=other.rank??(ix+dir)*1000;if(ra===rb)rb+=dir;
+  await guard(async()=>{await S.db.doc("items/"+a.id).update({rank:rb,updatedAt:now(),updatedBy:actor()});await S.db.doc("items/"+other.id).update({rank:ra});await log(`Moved “${a.title}” ${dir<0?"up":"down"} to #${ix+dir+1}`)});
+}
+function openProduct(){if(!S.canWrite)return;$("#prodForm").reset();$("#prodDlg").showModal()}
+$("#newProductBtn").onclick=openProduct;
+$("#np-cancel").onclick=()=>$("#prodDlg").close();
+$("#prodForm").addEventListener("submit",e=>{e.preventDefault();const name=$("#np-name").value.trim();if(!name)return;$("#prodDlg").close();
+  guard(async()=>{const ref=await S.db.collection("products").add({name,keyPrefix:($("#np-key").value.trim()||name.replace(/[^A-Za-z]/g,"").slice(0,3)||"PB").toUpperCase(),goal:$("#np-goal").value.trim(),vision:"",goalMetric:"",createdAt:now()});S.pid=ref.id;store("po-room-pid",ref.id);await log(`Created product ${name}`,ref.id);toast("Product created")})});
+
+function route(){const h=location.hash.slice(1);S.tab=TABS.some(t=>t[0]===h)?h:"backlog";S.confirm=null;render()}
+window.addEventListener("hashchange",route);
+
+/* ---------- boot ---------- */
+(async()=>{
+  route();
+  const [db,user]=await Promise.all([claude.use("db"),claude.use("user")]);
+  S.db=db;S.user=user;
+  if(user){S.myId=await user.id();const c=await user.can("data.write");if(c===false)S.canWrite=false}
+  if(!db){render();return}
+  const timer=setTimeout(()=>{if(!S.ready.products)$("#view").innerHTML=`<div class="empty">The shared backlog is taking a while to answer. It will appear here as soon as it connects.</div>`},10000);
+  const sub=(name,q,after)=>q.onSnapshot(snap=>{S[name]=snap.docs.map(d=>({id:d.id,...d.data()}));if(!snap.metadata.fromCache)S.ready[name]=true;
+      if(name==="products"){S.ready.products=true;clearTimeout(timer);if(!S.products.find(p=>p.id===S.pid)){const r=recall("po-room-pid");S.pid=(S.products.find(p=>p.id===r)||S.products[0])?.id||null}}
+      scheduleRender()},
+    err=>{toast("Lost connection to "+name+". Reload to reconnect.");});
+  sub("products",db.collection("products"));
+  sub("items",db.collection("items"));
+  sub("sprints",db.collection("sprints"));
+  sub("reviews",db.collection("reviews"));
+  sub("feedback",db.collection("feedback"));
+  sub("activity",db.collection("activity").orderBy("at","desc").limit(150));
+})();
+</script>
