@@ -164,7 +164,7 @@ button.plain{background:none;border:1px solid var(--line);border-radius:8px;padd
       .then(function(r){return r.json().catch(function(){return {}}).then(function(j){return {ok:r.ok,j:j}})})
       .then(function(x){
         if(x.ok){form.hidden=true;document.getElementById("done").hidden=false;window.scrollTo(0,0)}
-        else showError(x.j.error||"Your feedback couldn't be sent. Please try again.");
+        else showError((x.j.error||"Your feedback couldn't be sent. Please try again.")+(x.j.code?" (ref: "+x.j.code+")":""));
       })
       .catch(function(){showError("Couldn't reach the server. Check your connection and try again.")})
       .then(function(){btn.disabled=false;btn.textContent="Send feedback"});

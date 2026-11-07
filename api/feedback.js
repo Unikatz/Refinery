@@ -63,9 +63,27 @@ async function status(res) {
     if (r.ok) {
       const j = await r.json();
       out.repoPrivate = !!j.private;
-      out.canWriteIssues = !!(j.permissions && (j.permissions.push || j.permissions.triage || j.permissions.maintain || j.permissions.admin)) || null;
-      out.ready = true;
-      out.fix = null;
+      if (j.has_issues === false) {
+        out.canWriteIssues = false;
+        out.ready = false;
+        out.fix = `Issues are switched off for ${repo}. On GitHub open the repo → Settings → General → Features and tick Issues.`;
+        return res.status(200).json(out);
+      }
+      // Real write test: make sure the "feedback" label exists. Needs Issues: Read and write.
+      // 201 = created, 422 = already exists; both prove the token can write.
+      const w = await gh(`/repos/${repo}/labels`, token, {
+        method: "POST",
+        body: JSON.stringify({ name: "feedback", color: "2448c9", description: "Sent from the Refinery public form" }),
+      });
+      out.canWriteIssues = w.status === 201 || w.status === 422;
+      if (out.canWriteIssues) {
+        out.ready = true;
+        out.fix = null;
+      } else {
+        out.ready = false;
+        out.githubStatus = w.status;
+        out.fix = "The token can see the repo but can't write to it. Edit the token on GitHub: Permissions → Repositories → Issues must be \"Read and write\" (not Read-only). Click Update, then reload this page.";
+      }
     } else {
       out.ready = false;
       out.githubStatus = r.status;
@@ -153,7 +171,7 @@ module.exports = async (req, res) => {
     if (r.status === 422) r = await post(null); // labels refused: file it without them
     if (!r.ok) {
       console.error("GitHub issue create failed", r.status, await r.text().catch(() => ""));
-      return res.status(502).json({ error: "Your feedback couldn't be saved. Please try again in a minute." });
+      return res.status(502).json({ error: "Your feedback couldn't be saved. Please try again in a minute.", code: `github_${r.status}` });
     }
     recent.push(now); // only saved feedback counts toward the limit
     hits.set(ip, recent);
