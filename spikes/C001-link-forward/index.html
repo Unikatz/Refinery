@@ -1,0 +1,283 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; form-action 'none'; base-uri 'none'">
+<meta name="referrer" content="no-referrer">
+<title>Where does this link go?</title>
+<style>
+  :root { --ink:#1a1a1a; --paper:#fbfaf7; --line:#8a8478; --warn:#8f1d14; --warnbg:#fdecea; --unk:#4a4538; --unkbg:#f1ede2; --btn:#1d3f72; }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body { margin:0; padding:16px; background:var(--paper); color:var(--ink);
+         font: 20px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  main { max-width: 560px; margin: 0 auto; }
+  h1 { font-size: 26px; line-height:1.2; margin: 4px 0 8px; }
+  p { margin: 0 0 12px; }
+  .small { font-size: 16px; color:#4a4538; }
+  textarea { width:100%; min-height: 96px; font: inherit; padding: 12px; border:2px solid var(--line);
+             border-radius: 10px; background:#fff; color:var(--ink); overflow-wrap:anywhere; }
+  button { display:block; width:100%; min-height:60px; margin: 12px 0 0; padding: 10px 14px; font: inherit; font-weight: 700;
+           border-radius: 10px; border:2px solid var(--btn); background:var(--btn); color:#fff; }
+  button.second { background:#fff; color:var(--btn); }
+  button:focus-visible, textarea:focus-visible { outline: 4px solid #e0a100; outline-offset: 2px; }
+  #out { margin-top: 20px; }
+  .card { border:3px solid var(--unk); background:var(--unkbg); border-radius: 12px; padding: 14px; margin: 0 0 16px; overflow-wrap:anywhere; }
+  .card.warn { border-color: var(--warn); background: var(--warnbg); }
+  .tag { display:inline-block; font-size:16px; font-weight:700; letter-spacing:.02em; padding:2px 10px; border-radius: 6px; color:#fff; background:var(--unk); margin-bottom:8px; }
+  .warn .tag { background: var(--warn); }
+  .headline { font-size: 24px; line-height:1.25; font-weight: 700; margin: 0 0 10px; }
+  .why { margin: 0 0 10px; }
+  .next { margin: 0; padding-top:10px; border-top: 1px solid var(--line); }
+  .next b { display:block; }
+  .shown { font-size: 14px; color:#4a4538; margin: 10px 0 0; font-family: ui-monospace, monospace; }
+  .note { border:2px dashed var(--line); border-radius: 12px; padding: 14px; margin-bottom: 16px; }
+  [hidden] { display:none !important; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Where does this link go?</h1>
+  <p id="intro">Copy the message with the link. Then tap the button. Nothing you paste leaves this phone.</p>
+  <button id="pasteBtn" type="button">Paste and check</button>
+  <label for="box" class="small" style="display:block;margin-top:16px">Or press and hold in this box and choose Paste:</label>
+  <textarea id="box" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="text"></textarea>
+  <button id="checkBtn" class="second" type="button">Check what is in the box</button>
+  <div id="out" aria-live="polite"></div>
+</main>
+<script>
+"use strict";
+/* PROTOTYPE (spike C001-link-forward). Reads a link's address locally. No reputation data.
+   It must never tell the person a link is fine; the strongest wording is UNKNOWN_VERDICT below. */
+
+// Endings made of two parts. Hardcoded short list (a spike shortcut): anything not listed is read as a one-part ending.
+var TWO_PART = ["co.uk","org.uk","ac.uk","gov.uk","me.uk","ltd.uk","plc.uk","nhs.uk","com.au","net.au","org.au","gov.au",
+  "co.nz","co.za","co.in","co.jp","co.kr","co.id","co.ke","com.br","com.mx","com.sg","com.hk","com.tr","com.cn","com.ar",
+  "com.ng","com.ph","com.my","com.pk","com.eg","com.sa","com.co","com.ua","com.pl","com.tw","com.vn"];
+// Endings accepted for a link typed with no "http" or "www" in front (kept to ones unlikely to be ordinary words).
+var BARE_ENDINGS = ["com","net","org","info","xyz","io","ly","uk","de","fr","nl","au","ca","ru","cn","br","biz","gov","edu","example","test"];
+var SHORTENERS = ["bit.ly","tinyurl.com","t.co","goo.gl","is.gd","ow.ly","buff.ly","rebrand.ly","cutt.ly","shorturl.at","tiny.cc","rb.gy","lnkd.in","t.ly","v.gd","s.id"];
+// Well-known names and addresses known to be theirs. strict = name must stand alone (so "pineapple" is not "apple").
+var BRANDS = [
+  {name:"paypal",   own:["paypal.com"]},
+  {name:"amazon",   own:["amazon.com","amazon.co.uk"]},
+  {name:"google",   own:["google.com","google.co.uk"]},
+  {name:"microsoft",own:["microsoft.com"]},
+  {name:"netflix",  own:["netflix.com"]},
+  {name:"facebook", own:["facebook.com"]},
+  {name:"whatsapp", own:["whatsapp.com"]},
+  {name:"instagram",own:["instagram.com"]},
+  {name:"apple",    own:["apple.com"], strict:true}
+];
+var ALL_OWN = [].concat.apply([], BRANDS.map(function(b){return b.own;}));
+var CONFUSABLE = {"а":"a","е":"e","о":"o","р":"p","с":"c","у":"y","х":"x","і":"i","ѕ":"s","ј":"j","ԁ":"d","һ":"h","ӏ":"l","ԛ":"q","ԝ":"w","к":"k","м":"m","т":"t","н":"h","в":"b",
+  "ο":"o","α":"a","ν":"v","ρ":"p","ι":"i","κ":"k","τ":"t","υ":"u","ε":"e","ɡ":"g","ı":"i","ǀ":"l","ℓ":"l"};
+
+var UNKNOWN_VERDICT = "Nothing obviously wrong, but I can't confirm it.";
+var NEXT_UNKNOWN = "If you were not expecting this message, don't use the link. Open the organisation's own app, or type its address yourself.";
+var NEXT_WARN = "Don't tap it. To reach the organisation it names, open their own app or type their address yourself.";
+var NEXT_HIDDEN = "Don't tap it. Ask the sender where it leads, or open the organisation's own app instead.";
+
+function punyDecode(s){ // RFC 3492, for one label after "xn--"
+  var base=36,tMin=1,tMax=26,n=128,i=0,bias=72,out=[],b=s.lastIndexOf("-"),idx=0,j;
+  if(b>0){ for(j=0;j<b;j++) out.push(s.charCodeAt(j)); idx=b+1; }
+  function adapt(d,num,first){ d=first?Math.floor(d/700):d>>1; d+=Math.floor(d/num); var k=0;
+    for(;d>((base-tMin)*tMax)>>1;k+=base) d=Math.floor(d/(base-tMin));
+    return k+Math.floor((base-tMin+1)*d/(d+38)); }
+  while(idx<s.length){
+    var oldi=i,w=1;
+    for(var k=base;;k+=base){
+      if(idx>=s.length) throw new Error("bad");
+      var c=s.charCodeAt(idx++), dg = (c>=48&&c<58)?c-22:(c>=65&&c<91)?c-65:(c>=97&&c<123)?c-97:base;
+      if(dg>=base) throw new Error("bad");
+      i+=dg*w; var t=k<=bias?tMin:(k>=bias+tMax?tMax:k-bias);
+      if(dg<t) break; w*=base-t;
+    }
+    var len=out.length+1; bias=adapt(i-oldi,len,oldi===0); n+=Math.floor(i/len); i%=len; out.splice(i++,0,n);
+  }
+  return String.fromCodePoint.apply(null,out);
+}
+function toReadableHost(host){
+  return host.split(".").map(function(l){ if(l.indexOf("xn--")===0){ try{return punyDecode(l.slice(4));}catch(e){return l;} } return l; }).join(".");
+}
+function skeleton(s){
+  s = s.normalize("NFKD").replace(/[̀-ͯ]/g,"");
+  return Array.from(s).map(function(ch){ return CONFUSABLE[ch]||ch; }).join("");
+}
+function ownerOf(host){
+  var p = host.split(".");
+  if(p.length<=2) return host;
+  var take = TWO_PART.indexOf(p.slice(-2).join("."))>=0 ? 3 : 2;
+  return p.slice(-take).join(".");
+}
+function mentions(text, brand){
+  var i = text.indexOf(brand.name);
+  while(i>=0){
+    if(!brand.strict) return true;
+    var before = text[i-1], after = text[i+brand.name.length];
+    if(!(before && /[a-z]/.test(before)) && !(after && /[a-z]/.test(after))) return true;
+    i = text.indexOf(brand.name, i+1);
+  }
+  return false;
+}
+function isNumberHost(h){ return /^\d+\.\d+\.\d+\.\d+$/.test(h) || h[0]==="["; }
+
+// Find link-looking pieces in a pasted message.
+function findLinks(text){
+  var found=[], m;
+  var work = text;
+  function grab(re){
+    while((m=re.exec(work))){ found.push({at:m.index, raw:m[0]}); }
+    work = work.replace(re, function(x){ return " ".repeat(x.length); });
+  }
+  grab(/\bhttps?:\/\/[^\s<>"']+/gi);
+  grab(/(?<![@\w.\-\/])www\.[^\s<>"']+/gi);
+  // bare names with a common ending, e.g. "tinyurl.com/abc"; skipped when it is part of an email address
+  var bare = /(?<![@\p{L}\p{N}.\-\/_])((?:[\p{L}\p{N}\-]+\.)+([\p{L}]{2,}))(?::\d+)?(\/[^\s<>"']*)?(?![\p{L}\p{N}@\-])/giu;
+  while((m=bare.exec(work))){
+    if(BARE_ENDINGS.indexOf(m[2].toLowerCase())<0) continue;
+    found.push({at:m.index, raw:m[0]});
+  }
+  var bareNum = /(?<![@\w.\-\/])\d{1,3}(?:\.\d{1,3}){3}(?::\d+)?\/[^\s<>"']*/g;
+  while((m=bareNum.exec(work))){ found.push({at:m.index, raw:m[0]}); }
+  found.sort(function(a,b){return a.at-b.at;});
+  var seen={}, out=[];
+  found.forEach(function(f){
+    var raw=f.raw.replace(/[.,;:!?)\]}>'"*]+$/,"");
+    if(raw && !seen[raw]){ seen[raw]=1; out.push(raw); }
+  });
+  return out;
+}
+
+// Read one link. Returns {level:'warn'|'unknown', headline, why, next} or null if it cannot be read as a link.
+function readLink(raw){
+  var u;
+  try { u = new URL(/^https?:\/\//i.test(raw) ? raw : "http://"+raw); } catch(e){ return null; }
+  var host = u.hostname.replace(/\.$/,"").toLowerCase();
+  if(!host) return null;
+  var isNum = isNumberHost(host);
+  var owner = isNum ? "" : ownerOf(host);
+  var readable = toReadableHost(host);
+  var goes = isNum ? "a number" : owner;
+  function R(level, headline, why, next){ return {level:level, headline:headline, why:why, next: next || (level==="warn"?NEXT_WARN:NEXT_UNKNOWN), raw:raw}; }
+
+  // 1. A decoy name placed in front of the real address (the "@" trick).
+  if(u.username){
+    var decoy=""; try{ decoy=decodeURIComponent(u.username).toLowerCase(); }catch(e){ decoy=u.username.toLowerCase(); }
+    decoy = decoy.replace(/^www\./,"");
+    if(/[^\x00-\x7f]/.test(readable)) return R("warn","This link starts with a decoy name and uses lookalike letters.","The name at the start is not where it goes.");
+    if(/^[a-z0-9\-]+(\.[a-z0-9\-]+)+$/.test(decoy))
+      return R("warn","This link goes to "+goes+", not to "+ownerOf(decoy)+".","The name at the start is a decoy. Everything before the @ sign is ignored.");
+    return R("warn","This link goes to "+goes+", and its first part is a decoy.","Everything before the @ sign is ignored.");
+  }
+  // 2. Lookalike letters from other alphabets.
+  if(/[^\x00-\x7f]/.test(readable)){
+    var sk = skeleton(readable);
+    for(var i=0;i<BRANDS.length;i++) if(sk.indexOf(BRANDS[i].name)>=0)
+      return R("warn","This link imitates "+BRANDS[i].own[0]+" with lookalike letters.","Some letters in it are from another alphabet and only look the same.");
+    return R("warn","This link uses unusual letters that can imitate a real name.","I can't tell which name it is meant to look like.");
+  }
+  // 3. A number instead of a name.
+  if(isNum) return R("warn","This link goes to a number, not a named website.","Real organisations almost never send links like this.");
+  // 4. Shorteners.
+  if(SHORTENERS.indexOf(owner)>=0 || SHORTENERS.indexOf(host)>=0)
+    return R("warn","This link hides where it really goes.","It is a shortened link, so nobody can tell the real place by looking at it.", NEXT_HIDDEN);
+  // 5. Digits or letter pairs standing in for letters (paypa1, arnazon).
+  var maps=[function(s){return s.replace(/0/g,"o").replace(/1/g,"l").replace(/3/g,"e").replace(/5/g,"s").replace(/rn/g,"m").replace(/vv/g,"w");},
+            function(s){return s.replace(/0/g,"o").replace(/1/g,"i").replace(/3/g,"e").replace(/5/g,"s").replace(/rn/g,"m").replace(/vv/g,"w");}];
+  for(var b=0;b<BRANDS.length;b++){
+    for(var k=0;k<maps.length;k++){
+      if(host.indexOf(BRANDS[b].name)<0 && maps[k](host).indexOf(BRANDS[b].name)>=0)
+        return R("warn","This link imitates "+BRANDS[b].own[0]+" with lookalike letters.","Look closely: some letters have been swapped for ones that look similar.");
+    }
+  }
+  // 6. A well-known name in the wrong part of the address.
+  var ownerLabel = owner.split(".")[0];
+  var front = host.slice(0, host.length-owner.length);
+  var tail=""; try{ tail=decodeURIComponent(u.pathname+u.search).toLowerCase(); }catch(e){ tail=(u.pathname+u.search).toLowerCase(); }
+  var ownerIsKnown = ALL_OWN.indexOf(owner)>=0;
+  var nameOnly=null;
+  for(var pass=0; pass<2; pass++){           // pass 0: names in the address itself; pass 1: names after the first slash
+    for(var j=0;j<BRANDS.length;j++){
+      var br=BRANDS[j];
+      if(br.own.indexOf(owner)>=0) continue;
+      if(pass===0){
+        if(ownerLabel===br.name){ nameOnly=br; continue; }
+        if(mentions(front,br) || mentions(ownerLabel,br))
+          return R("warn","This link goes to "+owner+", not to "+br.own[0]+".","The well-known name is only there for show. The real place is "+owner+".");
+      } else if(!ownerIsKnown && !nameOnly && mentions(tail,br)){
+          return R("warn","This link goes to "+owner+", not to "+br.own[0]+".","The well-known name is only there for show. The real place is "+owner+".");
+      }
+    }
+  }
+  // 7. A second link tucked inside.
+  if(/https?(:|%3a)(\/|%2f)/i.test(u.pathname+u.search+u.hash))
+    return R("warn","This link goes to "+owner+", then may pass you on elsewhere.","There is a second address tucked inside it, so I can't see where you would end up.");
+  // 8. Nothing matched. This is NOT a clean bill of health.
+  if(nameOnly) return R("unknown","This link goes to "+owner+".","The name matches a well-known one, but I can't tell if this address is theirs. "+UNKNOWN_VERDICT);
+  return R("unknown","This link goes to "+owner+".",UNKNOWN_VERDICT);
+}
+
+function readMessage(text){
+  if(!text || !text.trim()) return {kind:"empty"};
+  var links = findLinks(text).map(readLink).filter(Boolean);
+  if(!links.length) return {kind:"nolink"};
+  return {kind:"links", links:links};
+}
+
+/* ---------- page ---------- */
+var box=document.getElementById("box"), out=document.getElementById("out");
+function el(tag, cls, text){ var e=document.createElement(tag); if(cls) e.className=cls; if(text!=null) e.textContent=text; return e; }
+function button(label, cls, fn){ var b=el("button",cls,label); b.type="button"; b.addEventListener("click",fn); return b; }
+function startAgain(){ box.value=""; out.replaceChildren(); window.scrollTo(0,0); box.focus(); }
+
+function show(res){
+  out.replaceChildren();
+  if(res.kind==="empty"){
+    var n=el("div","note"); n.id="problem";
+    n.append(el("p","headline","The box is empty."), el("p",null,"Copy the message that has the link in it first. Then tap the button below."));
+    n.append(button("Paste and check","",pasteFromPhone));
+    out.append(n);
+  } else if(res.kind==="nolink"){
+    var m=el("div","note"); m.id="problem";
+    m.append(el("p","headline","I couldn't find a link in that."), el("p",null,"That may mean there is nothing to tap. If the message did have a link, copy the whole message and try again."));
+    m.append(button("Try again","",startAgain));
+    out.append(m);
+  } else {
+    var many = res.links.length>1;
+    if(many) out.append(el("p","count","I found "+res.links.length+" links. Here is each one, in order."));
+    res.links.forEach(function(r,i){
+      var c=el("section","card "+r.level);
+      c.append(el("div","tag", (many?"Link "+(i+1)+": ":"") + (r.level==="warn"?"Be careful":"Can't confirm")));
+      c.append(el("p","headline",r.headline));
+      c.append(el("p","why",r.why));
+      var nx=el("p","next"); nx.append(el("b",null,"What to do next"), document.createTextNode(r.next)); c.append(nx);
+      c.append(el("p","shown","The link I read: "+(r.raw.length>70 ? r.raw.slice(0,70)+"…" : r.raw)));  // plain text, never tappable
+      out.append(c);
+    });
+    out.append(button("Check another message","second",startAgain));
+  }
+  var first=out.firstElementChild; if(first && first.scrollIntoView) first.scrollIntoView({block:"start"});
+}
+function check(){ show(readMessage(box.value)); }
+function pasteFromPhone(){
+  if(!navigator.clipboard || !navigator.clipboard.readText){ return pasteBlocked(); }
+  navigator.clipboard.readText().then(function(t){ box.value=t; check(); }, pasteBlocked);
+}
+function pasteBlocked(){
+  out.replaceChildren();
+  var n=el("div","note"); n.id="problem";
+  n.append(el("p","headline","Your phone didn't let me paste."), el("p",null,"Press and hold inside the box above, then choose Paste. I will check it straight away."));
+  out.append(n); box.focus();
+}
+document.getElementById("pasteBtn").addEventListener("click", pasteFromPhone);
+document.getElementById("checkBtn").addEventListener("click", check);
+box.addEventListener("paste", function(e){
+  var t = e.clipboardData && e.clipboardData.getData("text");
+  if(t==null) return;
+  e.preventDefault(); box.value=t; check();
+});
+</script>
+</body>
+</html>

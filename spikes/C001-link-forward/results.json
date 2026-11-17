@@ -1,0 +1,1208 @@
+{
+  "ranAt": "2026-11-17T07:01:28.045Z",
+  "viewport": "360x740, touch, offline",
+  "passSet": {
+    "total": 30,
+    "passed": 30
+  },
+  "results": [
+    {
+      "id": "F01-plain-two-part-ending",
+      "input": "https://www.bbc.co.uk/news/uk-12345",
+      "expected": [
+        "This link goes to bbc.co.uk."
+      ],
+      "actual": [
+        "This link goes to bbc.co.uk."
+      ],
+      "levels": [
+        "unknown"
+      ],
+      "estSeconds": [
+        2.8
+      ],
+      "checks": {
+        "reading": true,
+        "level": true,
+        "noJargon": true,
+        "neverSafe": true,
+        "nextStep": true,
+        "unknownWording": true,
+        "oneSentence": true,
+        "noSideScroll": true,
+        "notTappable": true,
+        "wayForward": true,
+        "under5s": true
+      },
+      "pass": true
+    },
+    {
+      "id": "F02-plain-with-front-part",
+      "input": "https://en.wikipedia.org/wiki/Tea",
+      "expected": [
+        "This link goes to wikipedia.org."
+      ],
+      "actual": [
+        "This link goes to wikipedia.org."
+      ],
+      "levels": [
+        "unknown"
+      ],
+      "estSeconds": [
+        2.5
+      ],
+      "checks": {
+        "reading": true,
+        "level": true,
+        "noJargon": true,
+        "neverSafe": true,
+        "nextStep": true,
+        "unknownWording": true,
+        "oneSentence": true,
+        "noSideScroll": true,
+        "notTappable": true,
+        "wayForward": true,
+        "under5s": true
+      },
+      "pass": true
+    },
+    {
+      "id": "F03-known-name-own-address",
+      "input": "https://www.paypal.com/signin",
+      "expected": [
+        "This link goes to paypal.com."
+      ],
+      "actual": [
+        "This link goes to paypal.com."
+      ],
+      "levels": [
+        "unknown"
+      ],
+      "estSeconds": [
+        2
+      ],
+      "checks": {
+        "reading": true,
+        "level": true,
+        "noJargon": true,
+        "neverSafe": true,
+        "nextStep": true,
+        "unknownWording": true,
+        "oneSentence": true,
+        "noSideScroll": true,
+        "notTappable": true,
+        "wayForward": true,
+        "under5s": true
+      },
+      "pass": true
+    },
+    {
+      "id": "F04-name-in-front-part",
+      "input": "https://paypal.com.account-check.example/login",
+      "expected": [
+        "This link goes to account-check.example, not to paypal.com."
+      ],
+      "actual": [
+        "This link goes to account-check.example, not to paypal.com."
+      ],
+      "levels": [
+        "warn"
+      ],
+      "estSeconds": [
+        4
+      ],
+      "checks": {
+        "reading": true,
+        "level": true,
+        "noJargon": true,
+        "neverSafe": true,
+        "nextStep": true,
+        "unknownWording": true,
+        "oneSentence": true,
+        "noSideScroll": true,
+        "notTappable": true,
+        "wayForward": true,
+        "under5s": true
+      },
+      "pass": true
+    },
+    {
+      "id": "F05-name-after-slash",
+      "input": "https://account-check.example/paypal.com/signin",
+      "expected": [
+        "This link goes to account-check.example, not to paypal.com."
+      ],
+      "actual": [
+        "This link goes to account-check.example, not to paypal.com."
+      ],
+      "levels": [
+        "warn"
+      ],
+      "estSeconds": [
+        4
+      ],
+      "checks": {
+        "reading": true,
+        "level": true,
+        "noJargon": true,
+        "neverSafe": true,
+        "nextStep": true,
+        "unknownWording": true,
+        "oneSentence": true,
+        "noSideScroll": true,
+        "notTappable": true,
+        "wayForward": true,
+        "under5s": true
+      },
+      "pass": true
+    },
+    {
+      "id": "F06-name-with-hyphen",
+      "input": "https://paypal-billing.example/update",
+      "expected": [
+        "This link goes to paypal-billing.example, not to paypal.com."
+      ],
+      "actual": [
+        "This link goes to paypal-billing.example, not to paypal.com."
+      ],
+      "levels": [
+        "warn"
+      ],
+      "estSeconds": [
+        4.3
+      ],
+      "checks": {
+        "reading": true,
+        "level": true,
+        "noJargon": true,
+        "neverSafe": true,
+        "nextStep": true,
+        "unknownWording": true,
+        "oneSentence": true,
+        "noSideScroll": true,
+        "notTappable": true,
+        "wayForward": true,
+        "under5s": true
+      },
+      "pass": true
+    },
+    {
+      "id": "F07-shortener",
+      "input": "https://bit.ly/3xYzAbC",
+      "expected": [
+        "This link hides where it really goes."
+      ],
+      "actual": [
+        "This link hides where it really goes."
+      ],
+      "levels": [
+        "warn"
+      ],
+      "estSeconds": [
+        2.3
+      ],
+      "checks": {
+        "reading": true,
+        "level": true,
+        "noJargon": true,
+        "neverSafe": true,
+        "nextStep": true,
+        "unknownWording": true,
+        "oneSentence": true,
+        "noSideScroll": true,
+        "notTappable": true,
+        "wayForward": true,
+        "under5s": true
+      },
+      "pass": true
+    },
+    {
+      "id": "F08-shortener-no-http",
+      "input": "tinyurl.com/yc7abcd",
+      "expected": [
+        "This link hides where it really goes."
+      ],
+      "actual": [
+        "This link hides where it really goes."
+      ],
+      "levels": [
+        "warn"
+      ],
+      "estSeconds": [
+        2.3
+      ],
+      "checks": {
+        "reading": true,
+        "level": true,
+        "noJargon": true,
+        "neverSafe": true,
+        "nextStep": true,
+        "unknownWording": true,
+        "oneSentence": true,
+        "noSideScroll": true,
+        "notTappable": true,
+        "wayForward": true,
+        "under5s": true
+      },
+      "pass": true
+    },
+    {
+      "id": "F09-raw-number",
+      "input": "http://192.0.2.44/bank/login",
+      "expected": [
+        "This link goes to a number, not a named website."
+      ],
+      "actual": [
+        "This link goes to a number, not a named website."
+      ],
+      "levels": [
+        "warn"
+      ],
+      "estSeconds": [
+        3.3
+      ],
+      "checks": {
+        "reading": true,
+        "level": true,
+        "noJargon": true,
+        "neverSafe": true,
+        "nextStep": true,
+        "unknownWording": true,
+        "oneSentence": true,
+        "noSideScroll": true,
+        "notTappable": true,
+        "wayForward": true,
+        "under5s": true
+      },
+      "pass": true
+    },
+    {
+      "id": "F10-at-trick",
+      "input": "https://www.paypal.com@login-help.example/verify",
+      "expected": [
+        "This link goes to login-help.example, not to paypal.com."
+      ],
+      "actual": [
+        "This link goes to login-help.example, not to paypal.com."
+      ],
+      "levels": [
+        "warn"
+      ],
+      "estSeconds": [
+        4
+      ],
+      "checks": {
+        "reading": true,
+        "level": true,
+        "noJargon": true,
+        "neverSafe": true,
+        "nextStep": true,
+        "unknownWording": true,
+        "oneSentence": true,
+        "noSideScroll": true,
+        "notTappable": true,
+        "wayForward": true,
+        "under5s": true
+      },
+      "pass": true
+    },
+    {
+      "id": "F11-lookalike-cyrillic-a",
+      "input": "https://pаypal.com/signin",
+      "expected": [
+        "This link imitates paypal.com with lookalike letters."
+      ],
+      "actual": [
+        "This link imitates paypal.com with lookalike letters."
+      ],
+      "levels": [
+        "warn"
+      ],
+      "estSeconds": [
+        4
+      ],
+      "checks": {
+        "reading": true,
+        "level": true,
+        "noJargon": true,
+        "neverSafe": true,
+        "nextStep": true,
+        "unknownWording": true,
+        "oneSentence": true,
+        "noSideScroll": true,
+        "notTappable": true,
+        "wayForward": true,
+        "under5s": true
+      },
+      "pass": true
+    },
+    {
+      "id": "F12-lookalike-encoded-form",
+      "input": "https://xn--pypal-4ve.com/signin",
+      "expected": [
+        "This link imitates paypal.com with lookalike letters."
+      ],
+      "actual": [
+        "This link imitates paypal.com with lookalike letters."
+      ],
+      "levels": [
+        "warn"
+      ],
+      "estSeconds": [
+        4
+      ],
+      "checks": {
+        "reading": true,
+        "level": true,
+        "noJargon": true,
+        "neverSafe": true,
+        "nextStep": true,
+        "unknownWording": true,
+        "oneSentence": true,
+        "noSideScroll": true,
+        "notTappable": true,
+        "wayForward": true,
+        "under5s": true
+      },
+      "pass": true
+    },
+    {
+      "id": "F13-digit-for-letter",
+      "input": "https://paypa1.example/login",
+      "expected": [
+        "This link imitates paypal.com with lookalike letters."
+      ],
+      "actual": [
+        "This link imitates paypal.com with lookalike letters."
+      ],
+      "levels": [
+        "warn"
+      ],
+      "estSeconds": [
+        4
+      ],
+      "checks": {
+        "reading": true,
+        "level": true,
+        "noJargon": true,
+        "neverSafe": true,
+        "nextStep": true,
+        "unknownWording": true,
+        "oneSentence": true,
+        "noSideScroll": true,
+        "notTappable": true,
+        "wayForward": true,
+        "under5s": true
+      },
+      "pass": true
+    },
+    {
+      "id": "F14-rn-for-m",
+      "input": "http://www.arnazon.example/deals",
+      "expected": [
+        "This link imitates amazon.com with lookalike letters."
+      ],
+      "actual": [
+        "This link imitates amazon.com with lookalike letters."
+      ],
+      "levels": [
+        "warn"
+      ],
+      "estSeconds": [
+        4.3
+      ],
+      "checks": {
+        "reading": true,
+        "level": true,
+        "noJargon": true,
+        "neverSafe": true,
+        "nextStep": true,
+        "unknownWording": true,
+        "oneSentence": true,
+        "noSideScroll": true,
+        "notTappable": true,
+        "wayForward": true,
+        "under5s": true
+      },
+      "pass": true
+    },
+    {
+      "id": "F15-whole-sms",
+      "input": "PostCo: your parcel is being held. Pay the 1.99 fee at https://parcel-fee.example/track?id=991 today or it will be returned.",
+      "expected": [
+        "This link goes to parcel-fee.example."
+      ],
+      "actual": [
+        "This link goes to parcel-fee.example."
+      ],
+      "levels": [
+        "unknown"
+      ],
+      "estSeconds": [
+        2.5
+      ],
+      "checks": {
+        "reading": true,
+        "level": true,
+        "noJargon": true,
+        "neverSafe": true,
+        "nextStep": true,
+        "unknownWording": true,
+        "oneSentence": true,
+        "noSideScroll": true,
+        "notTappable": true,
+        "wayForward": true,
+        "under5s": true
+      },
+      "pass": true
+    },
+    {
+      "id": "F16-brackets-and-full-stop",
+      "input": "More here (www.wikipedia.org/wiki/Tea).",
+      "expected": [
+        "This link goes to wikipedia.org."
+      ],
+      "actual": [
+        "This link goes to wikipedia.org."
+      ],
+      "levels": [
+        "unknown"
+      ],
+      "estSeconds": [
+        2.5
+      ],
+      "checks": {
+        "reading": true,
+        "level": true,
+        "noJargon": true,
+        "neverSafe": true,
+        "nextStep": true,
+        "unknownWording": true,
+        "oneSentence": true,
+        "noSideScroll": true,
+        "notTappable": true,
+        "wayForward": true,
+        "under5s": true
+      },
+      "pass": true
+    },
+    {
+      "id": "F17-no-link",
+      "input": "Hi gran, call me when you can x",
+      "expected": [
+        "I couldn't find a link in that."
+      ],
+      "actual": [
+        "I couldn't find a link in that."
+      ],
+      "levels": [],
+      "estSeconds": [
+        1.8
+      ],
+      "checks": {
+        "reading": true,
+        "level": true,
+        "noJargon": true,
+        "neverSafe": true,
+        "nextStep": true,
+        "unknownWording": true,
+        "oneSentence": true,
+        "noSideScroll": true,
+        "notTappable": true,
+        "wayForward": true,
+        "under5s": true
+      },
+      "pass": true
+    },
+    {
+      "id": "F18-empty",
+      "input": "",
+      "expected": [
+        "The box is empty."
+      ],
+      "actual": [
+        "The box is empty."
+      ],
+      "levels": [],
+      "estSeconds": [
+        1.3
+      ],
+      "checks": {
+        "reading": true,
+        "level": true,
+        "noJargon": true,
+        "neverSafe": true,
+        "nextStep": true,
+        "unknownWording": true,
+        "oneSentence": true,
+        "noSideScroll": true,
+        "notTappable": true,
+        "wayForward": true,
+        "under5s": true
+      },
+      "pass": true
+    },
+    {
+      "id": "F19-spaces-only",
+      "input": "   \n  ",
+      "expected": [
+        "The box is empty."
+      ],
+      "actual": [
+        "The box is empty."
+      ],
+      "levels": [],
+      "estSeconds": [
+        1.3
+      ],
+      "checks": {
+        "reading": true,
+        "level": true,
+        "noJargon": true,
+        "neverSafe": true,
+        "nextStep": true,
+        "unknownWording": true,
+        "oneSentence": true,
+        "noSideScroll": true,
+        "notTappable": true,
+        "wayForward": true,
+        "under5s": true
+      },
+      "pass": true
+    },
+    {
+      "id": "F20-three-links",
+      "input": "Track it: https://bit.ly/abc123 or sign in at https://amazon.com.orders-help.example/a . Help: https://www.amazon.co.uk/help",
+      "expected": [
+        "This link hides where it really goes.",
+        "This link goes to orders-help.example, not to amazon.com.",
+        "This link goes to amazon.co.uk."
+      ],
+      "actual": [
+        "This link hides where it really goes.",
+        "This link goes to orders-help.example, not to amazon.com.",
+        "This link goes to amazon.co.uk."
+      ],
+      "levels": [
+        "warn",
+        "warn",
+        "unknown"
+      ],
+      "estSeconds": [
+        2.3,
+        4.3,
+        2.8
+      ],
+      "checks": {
+        "reading": true,
+        "level": true,
+        "noJargon": true,
+        "neverSafe": true,
+        "nextStep": true,
+        "unknownWording": true,
+        "oneSentence": true,
+        "noSideScroll": true,
+        "notTappable": true,
+        "wayForward": true,
+        "under5s": true
+      },
+      "pass": true
+    },
+    {
+      "id": "F21-email-address-is-not-a-link",
+      "input": "Reply to help@postco.example for details.",
+      "expected": [
+        "I couldn't find a link in that."
+      ],
+      "actual": [
+        "I couldn't find a link in that."
+      ],
+      "levels": [],
+      "estSeconds": [
+        1.8
+      ],
+      "checks": {
+        "reading": true,
+        "level": true,
+        "noJargon": true,
+        "neverSafe": true,
+        "nextStep": true,
+        "unknownWording": true,
+        "oneSentence": true,
+        "noSideScroll": true,
+        "notTappable": true,
+        "wayForward": true,
+        "under5s": true
+      },
+      "pass": true
+    },
+    {
+      "id": "F22-link-inside-link",
+      "input": "https://www.google.com/url?q=https://prize-claim.example/win",
+      "expected": [
+        "This link goes to google.com, then may pass you on elsewhere."
+      ],
+      "actual": [
+        "This link goes to google.com, then may pass you on elsewhere."
+      ],
+      "levels": [
+        "warn"
+      ],
+      "estSeconds": [
+        3.8
+      ],
+      "checks": {
+        "reading": true,
+        "level": true,
+        "noJargon": true,
+        "neverSafe": true,
+        "nextStep": true,
+        "unknownWording": true,
+        "oneSentence": true,
+        "noSideScroll": true,
+        "notTappable": true,
+        "wayForward": true,
+        "under5s": true
+      },
+      "pass": true
+    },
+    {
+      "id": "F23-number-written-as-one-figure",
+      "input": "http://3221225985/login",
+      "expected": [
+        "This link goes to a number, not a named website."
+      ],
+      "actual": [
+        "This link goes to a number, not a named website."
+      ],
+      "levels": [
+        "warn"
+      ],
+      "estSeconds": [
+        3.3
+      ],
+      "checks": {
+        "reading": true,
+        "level": true,
+        "noJargon": true,
+        "neverSafe": true,
+        "nextStep": true,
+        "unknownWording": true,
+        "oneSentence": true,
+        "noSideScroll": true,
+        "notTappable": true,
+        "wayForward": true,
+        "under5s": true
+      },
+      "pass": true
+    },
+    {
+      "id": "F24-capitals-no-http",
+      "input": "Renew now: NETFLIX.COM-renew.example/pay",
+      "expected": [
+        "This link goes to com-renew.example, not to netflix.com."
+      ],
+      "actual": [
+        "This link goes to com-renew.example, not to netflix.com."
+      ],
+      "levels": [
+        "warn"
+      ],
+      "estSeconds": [
+        4
+      ],
+      "checks": {
+        "reading": true,
+        "level": true,
+        "noJargon": true,
+        "neverSafe": true,
+        "nextStep": true,
+        "unknownWording": true,
+        "oneSentence": true,
+        "noSideScroll": true,
+        "notTappable": true,
+        "wayForward": true,
+        "under5s": true
+      },
+      "pass": true
+    },
+    {
+      "id": "F25-known-name-other-ending",
+      "input": "https://www.amazon.fr/gp/css",
+      "expected": [
+        "This link goes to amazon.fr."
+      ],
+      "actual": [
+        "This link goes to amazon.fr."
+      ],
+      "levels": [
+        "unknown"
+      ],
+      "estSeconds": [
+        2.5
+      ],
+      "checks": {
+        "reading": true,
+        "level": true,
+        "noJargon": true,
+        "neverSafe": true,
+        "nextStep": true,
+        "unknownWording": true,
+        "oneSentence": true,
+        "noSideScroll": true,
+        "notTappable": true,
+        "wayForward": true,
+        "under5s": true
+      },
+      "pass": true
+    },
+    {
+      "id": "F26-same-link-twice",
+      "input": "https://bit.ly/abc123 again: https://bit.ly/abc123",
+      "expected": [
+        "This link hides where it really goes."
+      ],
+      "actual": [
+        "This link hides where it really goes."
+      ],
+      "levels": [
+        "warn"
+      ],
+      "estSeconds": [
+        2.3
+      ],
+      "checks": {
+        "reading": true,
+        "level": true,
+        "noJargon": true,
+        "neverSafe": true,
+        "nextStep": true,
+        "unknownWording": true,
+        "oneSentence": true,
+        "noSideScroll": true,
+        "notTappable": true,
+        "wayForward": true,
+        "under5s": true
+      },
+      "pass": true
+    },
+    {
+      "id": "F27-pineapple-is-not-apple",
+      "input": "https://pineapple-farm.example/shop",
+      "expected": [
+        "This link goes to pineapple-farm.example."
+      ],
+      "actual": [
+        "This link goes to pineapple-farm.example."
+      ],
+      "levels": [
+        "unknown"
+      ],
+      "estSeconds": [
+        2.5
+      ],
+      "checks": {
+        "reading": true,
+        "level": true,
+        "noJargon": true,
+        "neverSafe": true,
+        "nextStep": true,
+        "unknownWording": true,
+        "oneSentence": true,
+        "noSideScroll": true,
+        "notTappable": true,
+        "wayForward": true,
+        "under5s": true
+      },
+      "pass": true
+    },
+    {
+      "id": "F28-hypothesis-example-no-known-name",
+      "input": "Your bank account is locked. Verify: https://secure-login.xyz/mybank",
+      "expected": [
+        "This link goes to secure-login.xyz."
+      ],
+      "actual": [
+        "This link goes to secure-login.xyz."
+      ],
+      "levels": [
+        "unknown"
+      ],
+      "estSeconds": [
+        2.5
+      ],
+      "checks": {
+        "reading": true,
+        "level": true,
+        "noJargon": true,
+        "neverSafe": true,
+        "nextStep": true,
+        "unknownWording": true,
+        "oneSentence": true,
+        "noSideScroll": true,
+        "notTappable": true,
+        "wayForward": true,
+        "under5s": true
+      },
+      "pass": true
+    },
+    {
+      "id": "F29-accented-letters-no-known-name",
+      "input": "https://bücher.example/",
+      "expected": [
+        "This link uses unusual letters that can imitate a real name."
+      ],
+      "actual": [
+        "This link uses unusual letters that can imitate a real name."
+      ],
+      "levels": [
+        "warn"
+      ],
+      "estSeconds": [
+        4.3
+      ],
+      "checks": {
+        "reading": true,
+        "level": true,
+        "noJargon": true,
+        "neverSafe": true,
+        "nextStep": true,
+        "unknownWording": true,
+        "oneSentence": true,
+        "noSideScroll": true,
+        "notTappable": true,
+        "wayForward": true,
+        "under5s": true
+      },
+      "pass": true
+    },
+    {
+      "id": "F30-at-trick-to-number",
+      "input": "http://amazon.com@198.51.100.7/",
+      "expected": [
+        "This link goes to a number, not to amazon.com."
+      ],
+      "actual": [
+        "This link goes to a number, not to amazon.com."
+      ],
+      "levels": [
+        "warn"
+      ],
+      "estSeconds": [
+        3.5
+      ],
+      "checks": {
+        "reading": true,
+        "level": true,
+        "noJargon": true,
+        "neverSafe": true,
+        "nextStep": true,
+        "unknownWording": true,
+        "oneSentence": true,
+        "noSideScroll": true,
+        "notTappable": true,
+        "wayForward": true,
+        "under5s": true
+      },
+      "pass": true
+    }
+  ],
+  "stress": [
+    {
+      "id": "S01-long-name",
+      "input": "https://paypal.com.customer-account-verification-centre.example/login",
+      "expected": [
+        "This link goes to customer-account-verification-centre.example, not to paypal.com."
+      ],
+      "actual": [
+        "This link goes to customer-account-verification-centre.example, not to paypal.com."
+      ],
+      "levels": [
+        "warn"
+      ],
+      "estSeconds": [
+        6
+      ],
+      "checks": {
+        "reading": true,
+        "level": true,
+        "noJargon": true,
+        "neverSafe": true,
+        "nextStep": true,
+        "unknownWording": true,
+        "oneSentence": true,
+        "noSideScroll": true,
+        "notTappable": true,
+        "wayForward": true,
+        "under5s": false
+      },
+      "pass": false
+    },
+    {
+      "id": "S02-name-run-together",
+      "input": "https://paypalsecurelogin.example/",
+      "expected": [
+        "This link goes to paypalsecurelogin.example, not to paypal.com."
+      ],
+      "actual": [
+        "This link goes to paypalsecurelogin.example, not to paypal.com."
+      ],
+      "levels": [
+        "warn"
+      ],
+      "estSeconds": [
+        5
+      ],
+      "checks": {
+        "reading": true,
+        "level": true,
+        "noJargon": true,
+        "neverSafe": true,
+        "nextStep": true,
+        "unknownWording": true,
+        "oneSentence": true,
+        "noSideScroll": true,
+        "notTappable": true,
+        "wayForward": true,
+        "under5s": false
+      },
+      "pass": false
+    },
+    {
+      "id": "S03-unlisted-two-part-ending",
+      "input": "https://myshop.co.th/pay",
+      "expected": [
+        "This link goes to myshop.co.th."
+      ],
+      "actual": [
+        "This link goes to co.th."
+      ],
+      "levels": [
+        "unknown"
+      ],
+      "estSeconds": [
+        2
+      ],
+      "checks": {
+        "reading": false,
+        "level": true,
+        "noJargon": true,
+        "neverSafe": true,
+        "nextStep": true,
+        "unknownWording": true,
+        "oneSentence": true,
+        "noSideScroll": true,
+        "notTappable": true,
+        "wayForward": true,
+        "under5s": true
+      },
+      "pass": false
+    },
+    {
+      "id": "S04-shared-hosting",
+      "input": "https://paypal-help.github.io/login",
+      "expected": [
+        "This link goes to paypal-help.github.io, not to paypal.com."
+      ],
+      "actual": [
+        "This link goes to github.io, not to paypal.com."
+      ],
+      "levels": [
+        "warn"
+      ],
+      "estSeconds": [
+        3.5
+      ],
+      "checks": {
+        "reading": false,
+        "level": true,
+        "noJargon": true,
+        "neverSafe": true,
+        "nextStep": true,
+        "unknownWording": true,
+        "oneSentence": true,
+        "noSideScroll": true,
+        "notTappable": true,
+        "wayForward": true,
+        "under5s": true
+      },
+      "pass": false
+    },
+    {
+      "id": "S05-word-ending-no-http",
+      "input": "Go to prize-draw.click/win now",
+      "expected": [
+        "This link goes to prize-draw.click."
+      ],
+      "actual": [
+        "I couldn't find a link in that."
+      ],
+      "levels": [],
+      "estSeconds": [
+        1.8
+      ],
+      "checks": {
+        "reading": false,
+        "level": false,
+        "noJargon": true,
+        "neverSafe": true,
+        "nextStep": true,
+        "unknownWording": true,
+        "oneSentence": true,
+        "noSideScroll": true,
+        "notTappable": true,
+        "wayForward": true,
+        "under5s": true
+      },
+      "pass": false
+    },
+    {
+      "id": "S06-missing-space-after-full-stop",
+      "input": "Your parcel is waiting.com and see us",
+      "expected": [
+        "I couldn't find a link in that."
+      ],
+      "actual": [
+        "This link goes to waiting.com."
+      ],
+      "levels": [
+        "unknown"
+      ],
+      "estSeconds": [
+        2
+      ],
+      "checks": {
+        "reading": false,
+        "level": false,
+        "noJargon": true,
+        "neverSafe": true,
+        "nextStep": true,
+        "unknownWording": true,
+        "oneSentence": true,
+        "noSideScroll": true,
+        "notTappable": true,
+        "wayForward": true,
+        "under5s": true
+      },
+      "pass": false
+    },
+    {
+      "id": "S07-not-a-web-link",
+      "input": "Call tel:0000000000 or tap intent://scan/#Intent;scheme=zxing;end",
+      "expected": [
+        "I couldn't find a link in that."
+      ],
+      "actual": [
+        "I couldn't find a link in that."
+      ],
+      "levels": [],
+      "estSeconds": [
+        1.8
+      ],
+      "checks": {
+        "reading": true,
+        "level": true,
+        "noJargon": true,
+        "neverSafe": true,
+        "nextStep": true,
+        "unknownWording": true,
+        "oneSentence": true,
+        "noSideScroll": true,
+        "notTappable": true,
+        "wayForward": true,
+        "under5s": true
+      },
+      "pass": true
+    },
+    {
+      "id": "S08-unlisted-shortener",
+      "input": "https://shrt.example/x1",
+      "expected": [
+        "This link hides where it really goes."
+      ],
+      "actual": [
+        "This link goes to shrt.example."
+      ],
+      "levels": [
+        "unknown"
+      ],
+      "estSeconds": [
+        2.8
+      ],
+      "checks": {
+        "reading": false,
+        "level": false,
+        "noJargon": true,
+        "neverSafe": true,
+        "nextStep": true,
+        "unknownWording": true,
+        "oneSentence": true,
+        "noSideScroll": true,
+        "notTappable": true,
+        "wayForward": true,
+        "under5s": true
+      },
+      "pass": false
+    }
+  ],
+  "recovery": {
+    "emptyExplained": "The box is empty.",
+    "noLinkExplained": "I couldn't find a link in that.",
+    "afterTryAgain": {
+      "boxEmpty": true,
+      "outEmpty": true,
+      "focused": "box"
+    },
+    "afterCheckAnother": {
+      "boxEmpty": true,
+      "outEmpty": true
+    }
+  },
+  "targets": [
+    {
+      "what": "pasteBtn",
+      "w": 328,
+      "h": 60
+    },
+    {
+      "what": "box",
+      "w": 328,
+      "h": 96
+    },
+    {
+      "what": "checkBtn",
+      "w": 328,
+      "h": 60
+    }
+  ],
+  "oneTap": {
+    "tapsUsed": 1,
+    "result": "This link goes to account-check.example, not to paypal.com."
+  },
+  "denied": {
+    "result": "Your phone didn't let me paste."
+  },
+  "storage": {
+    "localStorage": 0,
+    "sessionStorage": 0,
+    "cookie": "",
+    "indexedDB": 0,
+    "caches": 0,
+    "serviceWorkers": "unavailable",
+    "online": false
+  },
+  "contextCookies": 0,
+  "requests": [
+    "file:///home/user/Refinery/spikes/C001-link-forward/index.html"
+  ],
+  "nonFileRequests": [],
+  "pageErrors": [],
+  "sourceScan": {
+    "fetch": false,
+    "xhr": false,
+    "beacon": false,
+    "ws": false,
+    "storageApis": false,
+    "externalRefs": false
+  }
+}
