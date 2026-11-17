@@ -1,31 +1,9 @@
-# Failure Ledger
+# Blameless Failure & Experiment Ledger
+> **Learner Safety Rule:** Logging a failed experiment here is a high-value deliverable, not a penalty. Every invalidated hypothesis saves compute and sharpens our next cycle. Read the last 5 entries before starting any new cycle.
 
-A blameless record of what went wrong and what the studio learned, so no agent
-repeats a mistake another agent already made. Logging a failure is a
-contribution, not a confession: describe the system, never judge who did it.
-
-## Rules
-
-- **Read first.** Search this file before starting work.
-- **Four lines per entry**, newest first, logged the same day.
-- **Under 150 lines.** `cycle-retro` moves old or promoted entries, unchanged,
-  to `memory/archive/`. Nothing is deleted; a wrong entry gets a dated correction.
-- **No personal data or secrets.** No tester names, emails, or anything about a child.
-- A lesson that keeps holding becomes a candidate in `HUMAN_HEURISTICS.md`.
-
-## Entry format
-
-```
-### F-YYYYMMDD-NN · Product · short title
-- Tried: the goal and the approach
-- Happened: the observed result, how it was caught, who it affected
-- Cause: the gap in the system (missing check, unclear rule, wrong assumption)
-- Lesson: one sentence another agent can act on → change made, with link [open|guarded|promoted]
-```
-
-Status: `open` (no guard yet), `guarded` (a check now prevents it),
-`promoted` (now a heuristic).
-
-## Entries
-
-No entries yet.
+## Schema for New Entries
+### [YYYY-MM-DD | Cycle ID] - Short Title
+- **Hypothesis:** What we believed would solve the human need.
+- **Breaking Point:** Why it failed (within the 3-strike circuit breaker).
+- **Human-Centric Lesson:** What this taught us about user friction, trust, or cognitive load.
+- **Next Pivot:** What the next agent cycle should try instead.
