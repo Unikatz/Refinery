@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ask first</title>
+<style>
+  :root {
+    --bg: #fbfaf6; --ink: #1b1b1b; --soft: #44474a; --line: #8a8f94;
+    --go: #0b4f8a; --go-ink: #ffffff; --panel: #ffffff;
+    --calm-bg: #e9f2ea; --calm-line: #2f6b3a;
+    --note-bg: #fff6d9; --note-line: #8a6400;
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0; padding: 16px; background: var(--bg); color: var(--ink);
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+    font-size: 21px; line-height: 1.45;
+  }
+  main { max-width: 560px; margin: 0 auto; }
+  h1 { font-size: 30px; line-height: 1.2; margin: 4px 0 8px; }
+  h2 { font-size: 24px; line-height: 1.25; margin: 0 0 10px; }
+  p { margin: 0 0 14px; }
+  .soft { color: var(--soft); }
+  button {
+    display: block; width: 100%; min-height: 68px; margin: 0 0 14px;
+    padding: 14px 16px; border-radius: 14px; border: 3px solid var(--go);
+    font: inherit; font-size: 23px; font-weight: 700; line-height: 1.25;
+    background: var(--go); color: var(--go-ink); cursor: pointer;
+  }
+  button.second { background: var(--panel); color: var(--go); }
+  button.plain {
+    background: transparent; color: var(--ink); border-color: var(--line);
+    font-weight: 600; font-size: 21px; min-height: 60px;
+  }
+  button:focus-visible, textarea:focus-visible { outline: 4px solid #e08a00; outline-offset: 2px; }
+  label { display: block; font-weight: 700; margin: 0 0 8px; }
+  textarea {
+    display: block; width: 100%; min-height: 150px; margin: 0 0 14px; padding: 12px;
+    font: inherit; font-size: 21px; line-height: 1.4; color: var(--ink);
+    background: var(--panel); border: 3px solid var(--line); border-radius: 14px; resize: vertical;
+  }
+  .or { text-align: center; color: var(--soft); margin: 4px 0 14px; }
+  .box {
+    border-radius: 14px; padding: 14px; margin: 0 0 16px;
+    border: 3px solid var(--line); background: var(--panel);
+  }
+  #help { background: var(--note-bg); border-color: var(--note-line); }
+  #calm { background: var(--calm-bg); border-color: var(--calm-line); font-weight: 700; font-size: 23px; }
+  #draft { white-space: pre-wrap; overflow-wrap: anywhere; max-height: 46vh; overflow-y: auto; }
+  #done { font-weight: 700; }
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<main>
+
+  <!-- Screen 1: get the worrying message -->
+  <section id="start">
+    <h1>Not sure about a message?</h1>
+    <p>Ask someone you trust to look at it first. It is always fine to ask.</p>
+
+    <div id="help" class="box" role="status" aria-live="polite" tabindex="-1" hidden>
+      <p id="helpText"></p>
+      <button id="helpGo" type="button"></button>
+    </div>
+
+    <button id="paste" type="button">Paste the message and write my note</button>
+
+    <p class="or">or</p>
+
+    <label for="msg">Type the message here</label>
+    <textarea id="msg" autocomplete="off" autocapitalize="sentences" spellcheck="false"></textarea>
+    <button id="build" class="second" type="button">Write my note</button>
+
+    <p class="soft">Nothing is sent from here. You send the note yourself.</p>
+  </section>
+
+  <!-- Screen 2: the ready note -->
+  <section id="ready" hidden>
+    <h2 id="readyTitle" tabindex="-1">Your note is ready</h2>
+    <div id="draft" class="box"></div>
+
+    <p id="done" role="status" aria-live="polite" hidden></p>
+
+    <button id="share" type="button" hidden>Send it to someone I trust</button>
+    <button id="copy" type="button">Copy the note</button>
+
+    <div id="calm" class="box">Do not pay, click or reply until you hear back.</div>
+
+    <button id="wrong" class="plain" type="button">Wrong message? Start again</button>
+    <p class="soft">Nothing is sent from here. You choose who gets it, in your own messages.</p>
+  </section>
+
+</main>
+
+<script>
+(function () {
+  'use strict';
+  // No storage, no network: this script never touches localStorage,
+  // sessionStorage, cookies, IndexedDB, fetch or XMLHttpRequest.
+
+  var INTRO = 'I got this message. Before I do anything, can you look at it?';
+  var NO_MESSAGE_NOTE = 'I got a message that worries me. Before I do anything, can you call me?';
+
+  function $(id) { return document.getElementById(id); }
+  var start = $('start'), ready = $('ready'), msg = $('msg'), draft = $('draft');
+  var help = $('help'), helpText = $('helpText'), helpGo = $('helpGo');
+  var done = $('done'), shareBtn = $('share'), copyBtn = $('copy');
+  var helpAction = null;
+  var canShare = typeof navigator.share === 'function';
+
+  function hideHelp() { help.hidden = true; helpAction = null; }
+
+  // Plain explanation plus exactly one big button forward.
+  function showHelp(text, buttonLabel, action) {
+    helpText.textContent = text;
+    helpGo.textContent = buttonLabel;
+    helpAction = action;
+    help.hidden = false;
+    help.scrollIntoView({ block: 'nearest' });
+  }
+
+  function focusBox() { hideHelp(); msg.focus(); }
+
+  function showDraft(text) {
+    draft.textContent = text;
+    done.hidden = true;
+    hideHelp();
+    shareBtn.hidden = !canShare;
+    copyBtn.className = canShare ? 'second' : '';
+    start.hidden = true;
+    ready.hidden = false;
+    window.scrollTo(0, 0);
+    $('readyTitle').focus({ preventScroll: true });
+  }
+
+  function buildFrom(text) {
+    showDraft(INTRO + '\n\n' + text.trim());
+  }
+
+  function askWithoutMessage() { showDraft(NO_MESSAGE_NOTE); }
+
+  $('paste').addEventListener('click', function () {
+    hideHelp();
+    if (!navigator.clipboard || !navigator.clipboard.readText) {
+      showHelp('This phone will not let the page paste for you. That is not your fault. ' +
+               'Press and hold in the box, then choose Paste.', 'Go to the box', focusBox);
+      return;
+    }
+    navigator.clipboard.readText().then(function (text) {
+      if (!text || !text.trim()) {
+        showHelp('There is nothing copied yet, so there is nothing to paste. ' +
+                 'You can still ask. Your note will just ask them to call you.',
+                 'Ask without the message', askWithoutMessage);
+        return;
+      }
+      msg.value = text;
+      buildFrom(text);
+    }).catch(function () {
+      showHelp('The phone did not let the page paste for you. That is not your fault. ' +
+               'Press and hold in the box, then choose Paste.', 'Go to the box', focusBox);
+    });
+  });
+
+  $('build').addEventListener('click', function () {
+    if (!msg.value.trim()) {
+      showHelp('The box is empty, so there is no message to show yet. ' +
+               'You can still ask. Your note will just ask them to call you.',
+               'Ask without the message', askWithoutMessage);
+      return;
+    }
+    buildFrom(msg.value);
+  });
+
+  helpGo.addEventListener('click', function () { if (helpAction) helpAction(); });
+  msg.addEventListener('input', hideHelp);
+
+  function say(text) { done.textContent = text; done.hidden = false; }
+
+  function selectDraft() {
+    var range = document.createRange();
+    range.selectNodeContents(draft);
+    var sel = window.getSelection();
+    sel.removeAllRanges();
+    sel.addRange(range);
+  }
+
+  function copyNote() {
+    var text = draft.textContent;
+    var copied = 'Copied. Now open your messages, choose someone you trust, and paste.';
+    function oldWay() {
+      var ok = false;
+      selectDraft();
+      try { ok = document.execCommand('copy'); } catch (e) { ok = false; }
+      if (ok) { window.getSelection().removeAllRanges(); say(copied); }
+      else { say('The phone would not copy it for you. The note is marked above. Press and hold on it, then choose Copy.'); }
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(function () { say(copied); }, oldWay);
+    } else {
+      oldWay();
+    }
+  }
+
+  copyBtn.addEventListener('click', copyNote);
+
+  shareBtn.addEventListener('click', function () {
+    navigator.share({ text: draft.textContent }).then(function () {
+      say('Your phone has it now. The note only goes if you pressed send there.');
+    }, function (err) {
+      if (err && err.name === 'AbortError') {
+        say('Nothing was sent. You can try again whenever you like.');
+      } else {
+        // Sharing is not working here: fall back to copy.
+        copyNote();
+      }
+    });
+  });
+
+  $('wrong').addEventListener('click', function () {
+    msg.value = '';
+    draft.textContent = '';
+    done.hidden = true;
+    hideHelp();
+    ready.hidden = true;
+    start.hidden = false;
+    window.scrollTo(0, 0);
+  });
+})();
+</script>
+</body>
+</html>
