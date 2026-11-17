@@ -1,63 +1,32 @@
 # Human Heuristics
 
-A living list of product truths the studio has validated across sprints: what
-real people do, need, and avoid. Agents read it before proposing work, so each
-sprint starts from what is already known.
-
-## What belongs here
-
-- A statement about people, backed by evidence: tester feedback, a playtest,
-  a metric, or a kept or killed experiment.
-- Not opinions, not plans, and not owner decisions. Those live in each
-  product's own charter and board.
-
-## How a truth gets in
-
-1. **Candidate.** Any agent or person may add one, with its evidence.
-   One observation is enough to be a candidate.
-2. **Validated.** It has held in at least two separate sprints or sources, and
-   the product owner has confirmed it. Only the product owner marks a truth
-   as validated.
-3. **Retired.** New evidence contradicts it. Keep the entry, mark it retired,
-   and say what replaced it. Challenging a validated truth with evidence is
-   always welcome.
-
-Agents may rely on validated truths. Candidates are leads to test, not facts.
+A living list of product truths validated across sprints: what real people do,
+need and avoid. Agents read it before proposing work, so each cycle starts
+from what is already known.
 
 ## Rules
 
-- Every entry links to its evidence. No evidence, no entry.
-- Never invent a number, a quote, or a source.
-- No personal data. Say "a tester aged 8", never a name.
-- State the scope. A truth about children aged 7 to 12 is not a truth about adults.
-- Review each validated truth when its "check again" date arrives.
+- **Truths about people, with evidence.** Tester feedback, a playtest, a metric,
+  or a kept or killed experiment. No evidence, no entry. Never invent a number,
+  quote or source. Opinions, plans and owner decisions live elsewhere.
+- **Candidate:** any agent may add one from a single observation. A lead to test, not a fact.
+- **Validated:** held in two separate sprints or sources, and confirmed by the
+  product owner. Only the product owner marks a truth validated.
+- **Retired:** contradicted by new evidence. Challenging a validated truth with
+  evidence is always welcome.
+- **Four lines per entry. Under 150 lines.** `cycle-retro` moves retired or
+  stale entries, unchanged, to `memory/archive/`.
+- **No personal data.** Say "a tester aged 8", never a name. State the audience:
+  a truth about children aged 7 to 12 is not a truth about adults.
 
-## Schema
-
-| Field | What goes in it |
-| --- | --- |
-| ID | `H-NNN`, numbered in order |
-| Truth | One plain sentence about what people do or need |
-| Applies to | Product and audience, for example "Aura Isles, players aged 7 to 12" |
-| Evidence | Links to feedback, sprint reviews, metrics, or failure ledger entries |
-| First seen | Date and sprint |
-| Confirmed in | The later sprints or sources that agreed |
-| So we | The design or working rule that follows from it |
-| Status | `candidate`, `validated`, or `retired` |
-| Check again | The date to re-test it |
-
-## Entry template
+## Entry format
 
 ```
-### H-NNN: the truth in one sentence
-
-- Applies to:
-- Evidence:
-- First seen:
-- Confirmed in:
-- So we:
-- Status: candidate
-- Check again:
+### H-NNN · Product, audience · candidate|validated|retired
+- Truth: one plain sentence about what people do or need
+- Evidence: links; first seen (date, sprint); confirmed in (later sprints or sources)
+- So we: the design or working rule that follows
+- Check again: the date to re-test it
 ```
 
 ## Validated
@@ -65,9 +34,5 @@ Agents may rely on validated truths. Candidates are leads to test, not facts.
 None yet.
 
 ## Candidates
-
-None yet.
-
-## Retired
 
 None yet.
